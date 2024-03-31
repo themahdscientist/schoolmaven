@@ -1,0 +1,76 @@
+@import "./Roboto.css";
+@import "./Satoshi.css";
+@import "./K_Mono.css";
+@import "./Aladin.css";
+@import "./Anta.css";
+@import "./Agbalumo.css";
+@import "~iti/build/css/intlTelInput.min.css";
+@import "~animate/animate.compat.css";
+@import "~flatpickr/dist/themes/material_green.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+    input,
+    select,
+    textarea {
+        @apply border-none;
+    }
+}
+
+@layer components {
+    .scrollbar {
+        scrollbar-gutter: stable;
+    }
+
+    .scrollbar::-webkit-scrollbar {
+        @apply w-2;
+    }
+
+    .scrollbar:hover::-webkit-scrollbar-thumb {
+        @apply bg-primary outline-none rounded-full;
+    }
+}
+
+@layer utilities {
+
+    .filepond--root,
+    .filepond--root .filepond--drop-label {
+        @apply min-h-9;
+    }
+
+    .filepond--root .filepond--drop-label {
+        @apply items-start;
+    }
+
+    .filepond--root .filepond--drop-label label {
+        @apply !p-2 cursor-pointer;
+    }
+
+    .fi-ta-header,
+    .fi-ta-content {
+        @apply bg-light dark:bg-body-dark;
+    }
+
+    .fi-ta-ctn {
+        @apply divide-secondary dark:!divide-dark;
+    }
+
+    .fi-ta-empty-state-heading {
+        @apply text-dark dark:!text-light;
+    }
+    
+    .fi-ta-empty-state-description {
+        @apply text-body-dark dark:!text-secondary;
+    }
+    
+    .fi-ta-empty-state-icon-ctn {
+        @apply bg-dark/10 dark:!bg-light/10;
+    }
+    
+    .fi-ta-empty-state-icon {
+        @apply text-dark/50 dark:!text-light/50;
+    }
+}
