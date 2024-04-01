@@ -36,8 +36,9 @@ class Staff extends Component implements HasForms, HasTable
         return $table
             ->headerActions([
                 CreateAction::make()
-                    ->icon('m-plus')
+                    ->icon('m-document-plus')
                     ->label('New Staff')
+                    ->outlined()
                     ->modalWidth(MaxWidth::FitContent)
                     ->closeModalByClickingAway(false)
                     ->stickyModalHeader(true)

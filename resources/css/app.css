@@ -52,12 +52,15 @@
     .fi-ta-header,
     .fi-ta-content,
     .fi-modal-window,
+    .fi-modal-header,
     .fi-dropdown-panel,
     .fi-ta-header-toolbar,
     .fi-pagination,
     .fi-ta-filter-indicators,
-    .fi-select-input option {
-        @apply bg-light dark:!bg-body-dark;
+    .fi-select-input option,
+    .fi-no-notification,
+    .fi-fo-wizard-header-step {
+        @apply bg-light dark:!bg-body-dark text-dark dark:!text-light;
     }
 
     .fi-ta-ctn,
@@ -66,7 +69,7 @@
     }
 
     .fi-ta-empty-state-heading,
-    .fi-modal-heading {
+    .fi-fo-wizard-header-step-icon {
         @apply text-dark dark:!text-light;
     }
     
@@ -83,9 +86,6 @@
         @apply text-dark/50 dark:!text-light/50;
     }
 
-    .fi-dropdown-panel {
-        @apply bg-light dark:!bg-body-dark;
-    }
     .fi-dropdown-list-item {
         @apply hover:!bg-secondary dark:hover:!bg-dark
     }

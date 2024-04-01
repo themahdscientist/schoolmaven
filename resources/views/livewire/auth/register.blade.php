@@ -829,7 +829,7 @@
                             class="block mb-2 text-sm font-medium text-body-dark dark:text-secondary">Logo</label>
                         <div class="relative">
                             <input type="file" wire:model.blur="form.s_logo" name="s_logo" id="s_logo"
-                                class="bg-secondary placeholder-body-dark/60 text-dark text-sm rounded-lg w-full py-2 px-4 outline-none focus:ring-primary focus:ring-2 caret-primary dark:bg-dark/40 dark:placeholder-secondary/60 dark:text-light file:font-medium file:border-none file:cursor-pointer file:text-dark file:bg-light dark:file:text-light dark:file:bg-body-dark"
+                                class="bg-secondary placeholder-body-dark/60 text-dark text-sm rounded-lg w-full py-2 px-4 !outline-none focus:ring-primary focus:ring-2 caret-primary dark:bg-dark/40 dark:placeholder-secondary/60 dark:text-light file:font-medium file:border-none file:cursor-pointer file:text-dark file:bg-light dark:file:text-light dark:file:bg-body-dark"
                                 required>
                             <svg wire:loading wire:target="form.s_logo" role="status" aria-hidden="true"
                                 class="dark:text-body-dark text-secondary absolute top-1/4 right-4 h-5 w-5 animate-spin fill-primary"
@@ -1365,7 +1365,7 @@
                             Picture</label>
                         <div class="relative">
                             <input type="file" wire:model.blur="form.u_avatar" name="u_avatar" id="u_avatar"
-                                class="bg-secondary placeholder-body-dark/60 text-dark text-sm rounded-lg w-full py-2 px-4 outline-none focus:ring-primary focus:ring-2 caret-primary dark:bg-dark/40 dark:placeholder-secondary/60 dark:text-light file:font-medium file:border-none file:cursor-pointer file:text-dark file:bg-light dark:file:text-light dark:file:bg-body-dark"
+                                class="bg-secondary placeholder-body-dark/60 text-dark text-sm rounded-lg w-full py-2 px-4 !outline-none focus:ring-primary focus:ring-2 caret-primary dark:bg-dark/40 dark:placeholder-secondary/60 dark:text-light file:font-medium file:border-none file:cursor-pointer file:text-dark file:bg-light dark:file:text-light dark:file:bg-body-dark"
                                 required>
                             <svg wire:loading wire:target="form.u_avatar" role="status" aria-hidden="true"
                                 class="dark:text-body-dark text-secondary absolute top-1/4 right-4 h-5 w-5 animate-spin fill-primary"

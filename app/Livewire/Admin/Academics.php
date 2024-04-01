@@ -3,7 +3,6 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Grade;
-use App\Models\User;
 use Livewire\Component;
 use Filament\Actions\Action;
 use Livewire\Attributes\Title;
@@ -62,7 +61,8 @@ class Academics extends Component implements HasActions, HasForms
             ->using(function (array $data, string $model): Model {
                 return $model::create($data);
             })
-            ->successNotificationTitle('Grade created');
+            ->successNotificationTitle('Grade created')
+            ->successRedirectUrl(route('app.admin.academics.grades'));
     }
 
     // public function subject(): Action
