@@ -22,7 +22,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
-use Illuminate\Support\HtmlString;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -31,13 +30,6 @@ class Staff extends Component implements HasForms, HasTable
 {
     use InteractsWithTable;
     use InteractsWithForms;
-
-    public $user;
-
-    public function mount()
-    {
-        $this->user = User::query()->findOrFail(auth()->id())->with('school')->first();
-    }
 
     public function table(Table $table): Table
     {

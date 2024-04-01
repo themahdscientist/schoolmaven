@@ -13,4 +13,9 @@ class Sidebar extends Component
     {
         $this->user = User::query()->findOrFail(auth()->id())->with('school')->first();
     }
+
+    public function grades()
+    {
+        return $this->redirectRoute('app.admin.academics.grades', navigate: true);
+    }
 }

@@ -50,19 +50,28 @@
     }
 
     .fi-ta-header,
-    .fi-ta-content {
-        @apply bg-light dark:bg-body-dark;
+    .fi-ta-content,
+    .fi-modal-window,
+    .fi-dropdown-panel,
+    .fi-ta-header-toolbar,
+    .fi-pagination,
+    .fi-ta-filter-indicators,
+    .fi-select-input option {
+        @apply bg-light dark:!bg-body-dark;
     }
 
-    .fi-ta-ctn {
+    .fi-ta-ctn,
+    .fi-ta-header-ctn {
         @apply divide-secondary dark:!divide-dark;
     }
 
-    .fi-ta-empty-state-heading {
+    .fi-ta-empty-state-heading,
+    .fi-modal-heading {
         @apply text-dark dark:!text-light;
     }
     
-    .fi-ta-empty-state-description {
+    .fi-ta-empty-state-description,
+    .fi-modal-description {
         @apply text-body-dark dark:!text-secondary;
     }
     
@@ -72,5 +81,12 @@
     
     .fi-ta-empty-state-icon {
         @apply text-dark/50 dark:!text-light/50;
+    }
+
+    .fi-dropdown-panel {
+        @apply bg-light dark:!bg-body-dark;
+    }
+    .fi-dropdown-list-item {
+        @apply hover:!bg-secondary dark:hover:!bg-dark
     }
 }

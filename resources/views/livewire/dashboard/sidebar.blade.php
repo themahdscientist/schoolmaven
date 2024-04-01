@@ -40,18 +40,18 @@
                         </a>
                         <x-filament::dropdown placement="bottom-start">
                             <x-slot name="trigger">
-                                <x-filament::icon-button icon="m-ellipsis-vertical" label="More options" />
+                                <x-filament::icon-button icon="m-ellipsis-vertical" tooltip="More options" size="lg" />
                             </x-slot>
                             <x-filament::dropdown.list>
-                                <x-filament::dropdown.list.item>
+                                <x-filament::dropdown.list.item wire:click="grades" icon="m-rectangle-stack">
                                     Grades
                                 </x-filament::dropdown.list.item>
 
-                                <x-filament::dropdown.list.item>
+                                <x-filament::dropdown.list.item icon="m-rectangle-stack">
                                     Subjects
                                 </x-filament::dropdown.list.item>
 
-                                <x-filament::dropdown.list.item>
+                                <x-filament::dropdown.list.item icon="m-rectangle-stack">
                                     Results
                                 </x-filament::dropdown.list.item>
                             </x-filament::dropdown.list>
@@ -74,15 +74,6 @@
             <div>
                 <h3 class="mb-2 ml-4 text-sm font-medium text-neutral-500">PERSONNEL</h3>
                 <ul class="mb-6 flex flex-col gap-1.5">
-                    {{-- Staff --}}
-                    <li>
-                        <a class="{{ request()->routeIs('app.' . session('role') . '.staff') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"
-                            href="{{ route('app.' . session('role') . '.staff') }}" wire:navigate>
-                            @svg('m-users', 'w-6 h-6')
-                            <span>Staff</span>
-                        </a>
-                    </li>
-                    {{-- Staff --}}
                     {{-- Students --}}
                     <li>
                         <a class="{{ request()->routeIs('app.' . session('role') . '.students') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"
@@ -101,6 +92,15 @@
                         </a>
                     </li>
                     {{-- Guardians --}}
+                    {{-- Staff --}}
+                    <li>
+                        <a class="{{ request()->routeIs('app.' . session('role') . '.staff') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"
+                            href="{{ route('app.' . session('role') . '.staff') }}" wire:navigate>
+                            @svg('m-users', 'w-6 h-6')
+                            <span>Staff</span>
+                        </a>
+                    </li>
+                    {{-- Staff --}}
                 </ul>
             </div>
             @endcan

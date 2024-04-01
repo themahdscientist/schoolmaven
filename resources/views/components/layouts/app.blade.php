@@ -17,6 +17,7 @@
     @guest
     <main class="h-full antialiased">
         {{ $slot }}
+        <livewire:notifications>
     </main>
     @endguest
 
@@ -29,6 +30,7 @@
         <section class="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
             <livewire:dashboard.header />
             {{ $slot }}
+            <livewire:notifications>
         </section>
     </main>
     @endauth
