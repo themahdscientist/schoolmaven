@@ -5,11 +5,12 @@
             {{-- Hamburger Toggle BTN --}}
             <button class="z-20 block rounded-sm bg-light p-0.5 shadow-sm dark:text-light dark:bg-dark lg:hidden"
                 @click.stop="sidebarToggle = !sidebarToggle">
-                @svg('m-bars-3', 'w-6 h-6 cursor-pointer')
+                @svg('c-bars-3', 'w-6 h-6 cursor-pointer')
             </button>
             {{-- Hamburger Toggle BTN --}}
             <a class="block flex-shrink-0 lg:hidden" href="{{ route('app.' . session('role') . '.dashboard') }}">
-                <img class="w-10 rounded" src="{{ Storage::url($user->school->logo) }}" alt="Logo" />
+                <x-filament::avatar :src="Storage::url($user->school->logo)" :alt="$user->school->name"
+                    :circular="false" />
             </a>
         </div>
         <div class="hidden md:block">
@@ -18,7 +19,7 @@
                     <label for="search" class="sr-only">Search</label>
                     <input name="search" id="search" type="text" placeholder="Search"
                         class="rounded-lg border border-transparent bg-neutral-300 text-body-dark dark:text-secondary dark:bg-body-dark py-2 pl-10 caret-primary focus:outline-none focus:border-primary" />
-                    @svg('m-magnifying-glass', 'w-6 h-6 absolute left-2 block text-primary')
+                    @svg('c-magnifying-glass', 'w-6 h-6 absolute left-2 block text-primary')
                 </div>
             </form>
         </div>
@@ -34,14 +35,14 @@
         <div class="relative" x-data="{ dropdownOpen: false }" @click.outside="dropdownOpen = false">
             <button class="flex items-center gap-4" @click.prevent="dropdownOpen = ! dropdownOpen">
                 <span class="hidden text-right lg:block">
-                    <span class="block text-sm font-bold text-dark dark:text-secondary">{{ $user->username }}</span>
-                    <span
-                        class="block text-xs font-medium text-neutral-500 dark:text-neutral-400">{{ $user->email }}</span>
+                    <x-filament::badge icon="c-sparkles">{{ $user->first_name }} {{ $user->last_name }}
+                    </x-filament::badge>
+                    <x-filament::badge color="gray" class="mt-1">{{ $user->email }}</x-filament::badge>
                 </span>
 
-                <img class="w-12 rounded-full" src="{{ Storage::url($user->avatar) }}" alt="avatar" />
+                <x-filament::avatar :src="Storage::url($user->avatar)" :alt="$user->first_name" size="lg" />
 
-                @svg('m-chevron-up', 'w-6 h-6 hidden transition dark:text-primary md:block', [':class' => "dropdownOpen
+                @svg('c-chevron-up', 'w-6 h-6 hidden transition dark:text-primary md:block', [':class' => "dropdownOpen
                 ? 'rotate-180' : ''"])
             </button>
 
@@ -52,7 +53,7 @@
                     <li>
                         <a href=""
                             class="flex items-center gap-3.5 rounded px-4 py-2 text-sm font-medium duration-300 ease-in-out hover:bg-primary hover:text-light dark:hover:bg-primary dark:hover:text-light lg:text-base">
-                            @svg('m-user-circle', 'w-6 h-6')
+                            @svg('c-user-circle', 'w-6 h-6')
                             <span>My Profile</span>
                         </a>
                     </li>
@@ -60,7 +61,7 @@
                     <li>
                         <a href=""
                             class="flex items-center gap-3.5 rounded px-4 py-2 text-sm font-medium duration-300 ease-in-out hover:bg-primary hover:text-light dark:hover:bg-primary dark:hover:text-light lg:text-base">
-                            @svg('m-newspaper', 'w-6 h-6')
+                            @svg('c-newspaper', 'w-6 h-6')
                             <span>Advertise</span>
                         </a>
                     </li>
@@ -68,7 +69,7 @@
                     <li>
                         <a href=""
                             class="flex items-center gap-3.5 rounded px-4 py-2 text-sm font-medium duration-300 ease-in-out hover:bg-primary hover:text-light dark:hover:bg-primary dark:hover:text-light lg:text-base">
-                            @svg('m-cog', 'w-6 h-6')
+                            @svg('c-cog', 'w-6 h-6')
                             <span>Account Settings</span>
                         </a>
                     </li>

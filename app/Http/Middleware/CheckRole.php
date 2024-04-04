@@ -16,7 +16,8 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        $user = User::query()->findOrFail(auth()->id())->with('roles:id,name')->first();
+        $user = User::query()->findOrFail(auth()->id())->load('roles:id,name');
+        // $user = auth()->user()->load('roles:id,name');
 
         // Get the user's roles
         $roles = $user->roles;

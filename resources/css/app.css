@@ -26,7 +26,7 @@
     }
 
     .scrollbar::-webkit-scrollbar {
-        @apply w-2;
+        @apply w-2.5;
     }
 
     .scrollbar:hover::-webkit-scrollbar-thumb {
@@ -51,15 +51,20 @@
 
     .fi-ta-header,
     .fi-ta-content,
-    .fi-modal-window,
-    .fi-modal-header,
-    .fi-dropdown-panel,
     .fi-ta-header-toolbar,
+    .fi-ta-selection-indicator,
+    .fi-modal-window,
+    .fi-dropdown-panel,
     .fi-pagination,
     .fi-ta-filter-indicators,
     .fi-select-input option,
     .fi-no-notification,
-    .fi-fo-wizard-header-step {
+    .fi-fo-wizard-header-step,
+    .fi-fo-date-time-picker-panel,
+    .fi-fo-date-time-picker-panel select.grow,
+    .fi-section,
+    .fi-fo-tabs,
+    .isolate > div > div{
         @apply bg-light dark:!bg-body-dark text-dark dark:!text-light;
     }
 
@@ -82,11 +87,21 @@
         @apply bg-dark/10 dark:!bg-light/10;
     }
     
-    .fi-ta-empty-state-icon {
-        @apply text-dark/50 dark:!text-light/50;
+    .fi-ta-empty-state-icon,
+    .choices__placeholder.choices__item,
+    .choices__input.choices__input--cloned {
+        @apply text-dark/50 dark:!text-light/50 placeholder:text-dark/50 dark:placeholder:text-light/50;
+    }
+
+    .fi-input {
+        @apply placeholder:text-dark/50 dark:placeholder:!text-light/50;
     }
 
     .fi-dropdown-list-item {
         @apply hover:!bg-secondary dark:hover:!bg-dark
+    }
+
+    .fi-checkbox-input {
+        @apply checked:!bg-primary focus:ring-primary;
     }
 }

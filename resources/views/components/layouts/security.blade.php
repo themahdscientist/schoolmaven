@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full font-satoshi">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="ltr" class="h-full font-satoshi">
 
 <head>
     <meta charset="UTF-8">

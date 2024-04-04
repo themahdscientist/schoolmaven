@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Auth;
 
+use Filament\Notifications\Notification;
 use Livewire\Component;
 
 class Logout extends Component
@@ -13,6 +14,12 @@ class Logout extends Component
         auth()->logout();
         request()->session()->invalidate();
         request()->session()->regenerateToken();
+
+        Notification::make()
+            ->title('Logout Success')
+            ->body('See ya!')
+            ->success()
+            ->send();
 
         return $this->redirectRoute('app.login', navigate: true);
     }

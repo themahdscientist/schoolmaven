@@ -21,7 +21,7 @@ class Register extends Component
 
     public function mount()
     {
-        $this->form->countries = Country::where('id', 1)->get();
+        $this->form->countries = Country::query()->where('id', 1)->get(['id', 'name']);
     }
 
     public function register()
@@ -40,12 +40,12 @@ class Register extends Component
     {
         $this->form->lga = null;
         $this->form->state = null;
-        $this->form->states = State::where('country_id', $country)->get();
+        $this->form->states = State::query()->where('country_id', $country)->get(['id', 'name']);
     }
 
     public function updatedFormState($state)
     {
         $this->form->lga = null;
-        $this->form->lgas = Lga::where('state_id', $state)->get();
+        $this->form->lgas = Lga::query()->where('state_id', $state)->get(['id', 'name']);
     }
 }

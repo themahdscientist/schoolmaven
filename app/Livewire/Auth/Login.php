@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use DanHarrin\LivewireRateLimiting\WithRateLimiting;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
+use Filament\Notifications\Notification;
 
 #[Title('Login')]
 class Login extends Component
@@ -30,7 +31,7 @@ class Login extends Component
     public function login()
     {
         $this->validate();
-        
+
         try {
             $this->rateLimit(2, 30);
         } catch (TooManyRequestsException $exception) {
@@ -39,7 +40,7 @@ class Login extends Component
                 'identity' => "Cross-check your login credentials."
             ]);
         }
-        
+
         $identity = filter_var($this->identity, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
         if (Auth::attempt([$identity => $this->identity, 'password' => $this->password], $this->remember)) {
             $this->reset();
@@ -48,6 +49,13 @@ class Login extends Component
             if (Auth::user()->roles->count() == 1) {
                 session(['role' => Auth::user()->roles->first()->name]);
             }
+
+            Notification::make()
+                ->title('Login Success')
+                ->body('Welcome back ' . Auth::user()->first_name . '!')
+                ->success()
+                ->send();
+
             return $this->redirectRoute('app.' . Auth::user()->roles->first()->name . '.dashboard', navigate: true);
         }
 

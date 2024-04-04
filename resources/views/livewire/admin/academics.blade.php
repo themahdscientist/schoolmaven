@@ -7,9 +7,10 @@
             ]" />
     </div>
     {{-- Academics --}}
-    <div>
+    <div class="grid grid-cols-4 p-4 h-24 gap-8">
         {{ $this->grade }}
-        {{-- {{ $this->subject }} --}}
+        {{ $this->subject }}
+        {{ $this->grade_subject }}
     </div>
     <x-filament-actions::modals />
 </section>

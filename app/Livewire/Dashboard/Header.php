@@ -11,6 +11,7 @@ class Header extends Component
 
     public function mount()
     {
-        $this->user = User::query()->findOrFail(auth()->id())->with('school')->first();
+        $this->user = User::query()->findOrFail(auth()->id())->load('school');
+        // $this->user = auth()->user()->load('roles:id,name');
     }
 }

@@ -13,8 +13,5 @@ class Administrator extends Model
         'user_id',
         'administrator_code',
         'position',
-        'nationality',
-        'state_origin',
-        'lga_origin',
     ];
 }

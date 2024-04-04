@@ -16,9 +16,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('administrator_code')->unique();
             $table->enum('position', ['administrator', 'principal', 'owner'])->default('administrator');
-            $table->foreignId('nationality')->nullable()->constrained('countries');
-            $table->foreignId('state_origin')->nullable()->constrained('states');
-            $table->foreignId('lga_origin')->nullable()->constrained('lgas');
             $table->timestamps();
         });
     }

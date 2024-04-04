@@ -12,16 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('schools', function (Blueprint $table) {
-            $table->foreignId('country')->constrained();
-            $table->foreignId('state')->constrained();
-            $table->foreignId('lga')->constrained();
+            $table->foreignId('country_id')->constrained();
+            $table->foreignId('state_id')->constrained();
+            $table->foreignId('lga_id')->constrained();
         });
 
         Schema::table('users', function (Blueprint $table) {
             $table->foreignId('school_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('country')->constrained();
-            $table->foreignId('state')->constrained();
-            $table->foreignId('lga')->constrained();
+            $table->foreignId('country_id')->constrained();
+            $table->foreignId('state_id')->constrained();
+            $table->foreignId('lga_id')->constrained();
+            $table->foreignId('nationality_id')->constrained('countries');
+            $table->foreignId('state_origin_id')->constrained('states');
+            $table->foreignId('lga_origin_id')->constrained('lgas');
         });
     }
 

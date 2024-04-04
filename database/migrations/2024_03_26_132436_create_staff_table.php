@@ -16,9 +16,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('staff_code')->unique();
             $table->string('position_title');
-            $table->foreignId('nationality')->constrained('countries');
-            $table->foreignId('state_origin')->constrained('states');
-            $table->foreignId('lga_origin')->constrained('lgas');
             $table->json('qualifications')->nullable();
             $table->enum('contract_type', ['full-time', 'part-time', 'contractual'])->default('full-time');
             $table->date('contract_expiry_date')->nullable();

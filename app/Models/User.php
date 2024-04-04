@@ -5,10 +5,13 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable implements CanResetPassword//, MustVerifyEmail
+class User extends Authenticatable implements CanResetPassword //, MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -29,11 +32,14 @@ class User extends Authenticatable implements CanResetPassword//, MustVerifyEmai
         'dob',
         'contact_number',
         'address',
-        'lga',
-        'state',
+        'lga_id',
+        'state_id',
+        'country_id',
+        'lga_origin_id',
+        'state_origin_id',
+        'nationality_id',
         'postal_code',
         'religion',
-        'country',
         'avatar',
         'status',
         'email_verified_at',
@@ -63,33 +69,48 @@ class User extends Authenticatable implements CanResetPassword//, MustVerifyEmai
         ];
     }
 
-    public function school()
+    public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    public function administrator()
+    public function administrator(): HasOne
     {
         return $this->hasOne(Administrator::class);
     }
 
-    public function student()
+    public function student(): HasOne
     {
         return $this->hasOne(Student::class);
     }
 
-    public function guardian()
+    public function guardian(): HasOne
     {
         return $this->hasOne(Guardian::class);
     }
 
-    public function staff()
+    public function staff(): HasOne
     {
         return $this->hasOne(Staff::class);
     }
 
-    public function roles()
+    public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class);
+    }
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function state(): BelongsTo
+    {
+        return $this->belongsTo(State::class);
+    }
+
+    public function lga(): BelongsTo
+    {
+        return $this->belongsTo(Lga::class);
     }
 }

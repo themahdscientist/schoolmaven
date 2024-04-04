@@ -170,17 +170,17 @@ class RegisterForm extends Form
         $school->name = $this->s_name;
         $school->alias = $this->s_alias;
         $school->address = $this->s_addr;
-        $school->lga = $this->lga;
-        $school->state = $this->state;
-        $school->country = $this->country;
+        $school->lga_id = $this->lga;
+        $school->state_id = $this->state;
+        $school->country_id = $this->country;
         $school->postal_code = $this->s_pmb;
-        $school->info = json_encode([
+        $school->info = [
             'email' => $this->s_email,
             'url' => $this->s_url,
-        ]);
+        ];
         $school->accreditation = $this->s_accredit;
-        $school->type = json_encode($this->s_type);
-        $school->affiliation = json_encode($this->s_affiliates);
+        $school->type = $this->s_type;
+        $school->affiliation = $this->s_affiliates;
         $school->mission = $this->s_mission;
         $school->vision = $this->s_vision;
         $school->established_date = $this->s_est;
@@ -204,9 +204,12 @@ class RegisterForm extends Form
         $user->phone = $this->u_phone;
         $user->address = $this->s_addr;
         $user->postal_code = $this->s_pmb;
-        $user->lga = $this->lga;
-        $user->state = $this->state;
-        $user->country = $this->country;
+        $user->lga_id = $this->lga;
+        $user->state_id = $this->state;
+        $user->country_id = $this->country;
+        $user->lga_origin_id = $this->lga;
+        $user->state_origin_id = $this->state;
+        $user->nationality_id = $this->country;
         $user->avatar = $this->u_avatar->store('avatars', 'public');
 
         $user->save();
@@ -219,7 +222,6 @@ class RegisterForm extends Form
         $admin->user_id = $user->id;
         $admin->administrator_code = $this->generateAdminCode();
         $admin->position = $this->u_position;
-        $admin->nationality = $this->country;
 
         $admin->save();
 

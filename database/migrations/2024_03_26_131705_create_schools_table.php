@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('address');
             $table->string('postal_code')->nullable();
             $table->json('info'); // email_address;website_url;
-            $table->string('accreditation')->nullable();
+            $table->enum('accreditation', ['intl', 'ntl', 'rgl'])->nullable()->default('rgl');
             $table->json('type');
             $table->json('affiliation')->nullable();
             $table->text('mission')->nullable();

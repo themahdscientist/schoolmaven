@@ -2,12 +2,19 @@
 
 namespace App\Livewire\Admin\Academics;
 
+use App\AgeRange;
 use App\Models\Grade;
+use App\Models\Staff;
+use App\Status;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Support\Enums\ActionSize;
 use Filament\Support\Enums\MaxWidth;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\CreateAction;
@@ -37,28 +44,60 @@ class Grades extends Component implements HasForms, HasTable
                     ->icon('m-folder-plus')
                     ->label('Create grade')
                     ->outlined()
-                    ->modalWidth(MaxWidth::Medium)
+                    ->modalWidth(MaxWidth::ScreenMedium)
                     ->modalHeading('Grade registration')
                     ->modalDescription('Create a new grade')
                     ->createAnother(false)
                     ->form([
-                        TextInput::make('name')
-                            ->label('Grade Name')
-                            ->placeholder('Grade 1')
-                            ->required()
-                            ->maxLength(100)
-                            ->minLength(4)
-                            ->autocomplete()
-                            ->autofocus()
-                            ->live(true),
-                        Select::make('status')
-                            ->label('Status')
-                            ->options([
-                                'active' => 'Active',
-                                'inactive' => 'Inactive',
-                            ])
-                            ->required()
-                            ->native(false)
+                        Grid::make([
+                            'md' => 3
+                        ])
+                            ->schema([
+                                TextInput::make('name')
+                                    ->placeholder('Grade 1')
+                                    ->required()
+                                    ->maxLength(100)
+                                    ->minLength(1)
+                                    ->autocomplete()
+                                    ->autofocus()
+                                    ->live(true),
+                                DatePicker::make('start_date')
+                                    ->label('Start Date')
+                                    ->placeholder('Click to select a date')
+                                    ->required()
+                                    ->native(false)
+                                    ->live(true),
+                                DatePicker::make('end_date')
+                                    ->label('End Date')
+                                    ->placeholder('Click to select a date')
+                                    ->required()
+                                    ->native(false)
+                                    ->live(true),
+                            ]),
+                        Fieldset::make('Grade Metadata')
+                            ->columns(3)
+                            ->schema([
+                                Select::make('year_head_id')
+                                    ->label('Year Head')
+                                    ->placeholder('Select a staff')
+                                    ->options(Staff::all()->pluck('name', 'id'))
+                                    ->searchable()
+                                    ->native(false),
+                                Select::make('age_range')
+                                    ->label('Age Range')
+                                    ->placeholder('Select an Age Range')
+                                    ->options(AgeRange::class)
+                                    ->required()
+                                    ->native(false),
+                                Select::make('status')
+                                    ->placeholder('Select an option')
+                                    ->options(Status::class)
+                                    ->required()
+                                    ->native(false),
+                            ]),
+                        Textarea::make('description')
+                            ->placeholder('Type in here...')
+                            ->autosize(),
                     ])
                     ->model(Grade::class)
                     ->mutateFormDataUsing(function (array $data) {
@@ -71,23 +110,84 @@ class Grades extends Component implements HasForms, HasTable
                     ->successNotificationTitle('Grade created')
             ])
             ->actions([
+                EditAction::make('subjects')
+                    ->label('Subjects')
+                    ->icon('c-newspaper')
+                    ->color('gray')
+                    ->button()
+                    ->modalWidth(MaxWidth::FitContent)
+                    ->modalHeading('Subjects')
+                    ->modalDescription('You can view and assign subjects to a grade')
+                    ->modalSubmitActionLabel('Update')
+                    ->form([
+                        CheckboxList::make('subjects')
+                            ->label('Subjects offered')
+                            ->columns(3)
+                            ->relationship('subjects', 'name'),
+                    ]),
                 ActionGroup::make([
                     EditAction::make()
+                        ->modalWidth(MaxWidth::FitContent)
+                        ->modalHeading('Grades')
+                        ->modalDescription('You can view and edit grade information here')
                         ->form([
-                            TextInput::make('name')
-                                ->required()
-                                ->maxLength(255),
-                            Select::make('status')
-                                ->required()
-                                ->options([
-                                    'active' => 'Active',
-                                    'inactive' => 'Inactive'
-                                ])
-                                ->native(false),
+                            Grid::make([
+                                'md' => 3
+                            ])
+                                ->schema([
+                                    TextInput::make('name')
+                                        ->placeholder('Grade 1')
+                                        ->required()
+                                        ->maxLength(100)
+                                        ->minLength(4)
+                                        ->autocomplete()
+                                        ->autofocus()
+                                        ->live(true),
+                                    DatePicker::make('start_date')
+                                        ->label('Start Date')
+                                        ->placeholder('Click to select a date')
+                                        ->required()
+                                        ->native(false)
+                                        ->live(true),
+                                    DatePicker::make('end_date')
+                                        ->label('End Date')
+                                        ->placeholder('Click to select a date')
+                                        ->required()
+                                        ->native(false)
+                                        ->live(true),
+                                ]),
+                            Fieldset::make('Grade Metadata')
+                                ->columns(3)
+                                ->schema([
+                                    Select::make('year_head_id')
+                                        ->label('Year Head')
+                                        ->placeholder('Select a staff')
+                                        ->options(Staff::all()->pluck('name', 'id'))
+                                        ->searchable()
+                                        ->native(false),
+                                    Select::make('age_range')
+                                        ->label('Age Range')
+                                        ->placeholder('Select an Age Range')
+                                        ->options(AgeRange::class)
+                                        ->required()
+                                        ->native(false),
+                                    Select::make('status')
+                                        ->placeholder('Select an option')
+                                        ->options(Status::class)
+                                        ->required()
+                                        ->native(false),
+                                ]),
+                            CheckboxList::make('subjects')
+                                ->label('Subjects offered')
+                                ->columns(3)
+                                ->relationship('subjects', 'name'),
+                            Textarea::make('description')
+                                ->placeholder('Type in here...')
+                                ->autosize(),
                         ]),
                     DeleteAction::make()
                 ])
-                    ->color('info')
+                    ->color('gray')
                     ->tooltip('Actions'),
             ])
             ->query(Grade::query())
@@ -95,26 +195,31 @@ class Grades extends Component implements HasForms, HasTable
                 TextColumn::make('name')
                     ->searchable()
                     ->alignCenter(),
-                TextColumn::make('user.first_name')
+                TextColumn::make('staff.user.firstname')
+                    ->label('Year Head')
+                    ->placeholder('unassigned')
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('subjects_count')
+                    ->label('No. of Subjects')
+                    ->counts('subjects')
+                    ->alignCenter(),
+                TextColumn::make('age_range')
+                    ->label('Age Range')
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('user.username')
                     ->label('Created by')
                     ->searchable()
                     ->alignCenter(),
                 IconColumn::make('status')
-                    ->icon(fn (string $state): string => match ($state) {
-                        'active' => 'm-check-circle',
-                        'inactive' => 'm-x-circle',
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'active' => 'success',
-                        'inactive' => 'danger',
-                    })
+                    ->icon(fn (Model $record): string => Status::from($record->status)->getIcon())
+                    ->color(fn (Model $record): string => Status::from($record->status)->getColor())
                     ->tooltip(function (Model $record): string {
-                        if ($record->status == 'active') return 'Active';
-                        else return 'Inactive';
+                        return Status::from($record->status)->getLabel();
                     })
                     ->alignCenter(),
             ])
-            ->searchPlaceholder('Search (Name)')
             ->filters([
                 SelectFilter::make('status')
                     ->options([

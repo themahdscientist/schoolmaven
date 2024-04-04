@@ -36,7 +36,7 @@ class Staff extends Component implements HasForms, HasTable
         return $table
             ->headerActions([
                 CreateAction::make()
-                    ->icon('m-document-plus')
+                    ->icon('c-document-plus')
                     ->label('New Staff')
                     ->outlined()
                     ->modalWidth(MaxWidth::FitContent)
@@ -82,7 +82,7 @@ class Staff extends Component implements HasForms, HasTable
                                     ->required()
                                     ->maxLength(255)
                                     ->unique('users', 'email')
-                                    ->hintIcon('m-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.')
+                                    ->hintIcon('c-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.')
                                     ->live(true),
                                 Select::make('gender')
                                     ->label('Gender')
@@ -152,7 +152,7 @@ class Staff extends Component implements HasForms, HasTable
                                     ->acceptedFileTypes(['application/pdf', 'image/png', 'image/jpeg'])
                                     ->appendFiles()
                                     ->previewable(false)
-                                    ->hintIcon('m-exclamation-circle', 'Images and PDF documents are currently supported.')
+                                    ->hintIcon('c-exclamation-circle', 'Images and PDF documents are currently supported.')
                                     ->hintColor('danger')
                                     ->maxSize(1024)
                                     ->maxFiles(3)
@@ -198,13 +198,13 @@ class Staff extends Component implements HasForms, HasTable
                                     ->label('Postal Code')
                                     ->placeholder('460242')
                                     ->autocomplete()
-                                    ->hintIcon('m-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
+                                    ->hintIcon('c-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
                                     ->nullable(),
                                 TextInput::make('phone')
                                     ->tel()
                                     ->label('Phone Number')
                                     ->prefix('+234')
-                                    ->prefixIcon('m-phone')
+                                    ->prefixIcon('c-phone')
                                     ->placeholder('7059753934')
                                     ->autocomplete()
                                     ->required(),
@@ -238,7 +238,7 @@ class Staff extends Component implements HasForms, HasTable
                 TextColumn::make('email'),
                 TextColumn::make('phone'),
             ])
-            ->emptyStateIcon('m-users')
+            ->emptyStateIcon('c-users')
             ->emptyStateHeading('No staff')
             ->emptyStateDescription('Create a staff member to get started');
     }

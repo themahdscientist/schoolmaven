@@ -1,3 +1,4 @@
+{{-- @dd($user->school) --}}
 <aside :class="sidebarToggle ? 'translate-x-0' : '-translate-x-full'"
     class="absolute left-0 top-0 z-20 flex h-screen w-72 flex-col overflow-y-hidden bg-dark duration-300 ease-linear -translate-x-full dark:bg-neutral-900 lg:static lg:translate-x-0"
     @click.outside="sidebarToggle = false">
@@ -5,11 +6,11 @@
     <div :class="sidebarToggle ? 'justify-between' : 'justify-center'"
         class="flex items-center justify-center px-6 py-3 lg:py-4">
         <a href="{{ route('app.' . session('role') . '.dashboard') }}" wire:navigate>
-            <img class="w-14 rounded" src="{{ Storage::url($user->school->logo) }}" alt="School Logo" />
+            <x-filament::avatar :src="Storage::url($user->school->logo)" :alt="$user->school->name" :circular="false" size="lg" />
         </a>
 
         <button class="block lg:hidden" @click.stop="sidebarToggle = !sidebarToggle">
-            @svg('m-arrow-left-circle', 'w-6 h-6 text-secondary')
+            @svg('c-arrow-left-circle', 'w-6 h-6 text-secondary')
         </button>
     </div>
     {{-- SIDEBAR HEADER --}}
@@ -26,32 +27,32 @@
                     <li>
                         <a class="{{ request()->routeIs('app.' . session('role') . '.dashboard') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"
                             href="{{ route('app.' . session('role') . '.dashboard') }}" wire:navigate>
-                            @svg('m-home', 'w-6 h-6')
+                            @svg('c-home', 'w-6 h-6')
                             <span>Dashboard</span>
                         </a>
                     </li>
                     {{-- Dashboard --}}
                     {{-- Academics --}}
                     <li class="flex flex-row-reverse items-center">
-                        <a class="{{ request()->routeIs('app.' . session('role') . '.academics') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark flex-1"
+                        <a class="{{ request()->routeIs('app.' . session('role') . '.academics') || request()->segment(2) == 'academics'  ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark flex-1"
                             href="{{ route('app.' . session('role') . '.academics') }}" wire:navigate>
-                            @svg('m-academic-cap', 'w-6 h-6')
+                            @svg('c-academic-cap', 'w-6 h-6')
                             <span>Academics</span>
                         </a>
-                        <x-filament::dropdown placement="bottom-start">
+                        <x-filament::dropdown placement="bottom-end">
                             <x-slot name="trigger">
-                                <x-filament::icon-button icon="m-ellipsis-vertical" tooltip="More options" size="lg" />
+                                <x-filament::icon-button icon="c-ellipsis-vertical" tooltip="More options" size="lg" />
                             </x-slot>
                             <x-filament::dropdown.list>
-                                <x-filament::dropdown.list.item wire:click="grades" icon="m-rectangle-stack">
+                                <x-filament::dropdown.list.item wire:click="grades" icon="c-rectangle-stack" icon-color="primary">
                                     Grades
                                 </x-filament::dropdown.list.item>
 
-                                <x-filament::dropdown.list.item icon="m-rectangle-stack">
+                                <x-filament::dropdown.list.item wire:click="subjects" icon="c-rectangle-stack" icon-color="primary">
                                     Subjects
                                 </x-filament::dropdown.list.item>
 
-                                <x-filament::dropdown.list.item icon="m-rectangle-stack">
+                                <x-filament::dropdown.list.item icon="c-rectangle-stack" icon-color="primary">
                                     Results
                                 </x-filament::dropdown.list.item>
                             </x-filament::dropdown.list>
@@ -62,7 +63,7 @@
                     <li>
                         <a class="{{ request()->routeIs('app.' . session('role') . '.finances') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"
                             href="{{ route('app.' . session('role') . '.finances') }}" wire:navigate>
-                            @svg('m-currency-dollar', 'w-6 h-6')
+                            @svg('c-currency-dollar', 'w-6 h-6')
                             <span>Finances</span>
                         </a>
                     </li>
@@ -78,7 +79,7 @@
                     <li>
                         <a class="{{ request()->routeIs('app.' . session('role') . '.students') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"
                             href="{{ route('app.' . session('role') . '.students') }}" wire:navigate>
-                            @svg('m-user-group', 'w-6 h-6')
+                            @svg('c-user-group', 'w-6 h-6')
                             <span>Students</span>
                         </a>
                     </li>
@@ -87,7 +88,7 @@
                     <li>
                         <a class="{{ request()->routeIs('app.' . session('role') . '.guardians') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"
                             href="{{ route('app.' . session('role') . '.guardians') }}" wire:navigate>
-                            @svg('m-user-group', 'w-6 h-6')
+                            @svg('c-user-group', 'w-6 h-6')
                             <span>Guardians</span>
                         </a>
                     </li>
@@ -96,7 +97,7 @@
                     <li>
                         <a class="{{ request()->routeIs('app.' . session('role') . '.staff') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"
                             href="{{ route('app.' . session('role') . '.staff') }}" wire:navigate>
-                            @svg('m-users', 'w-6 h-6')
+                            @svg('c-users', 'w-6 h-6')
                             <span>Staff</span>
                         </a>
                     </li>
@@ -112,8 +113,8 @@
                     {{-- Profile --}}
                     <li>
                         <a class="{{ request()->routeIs('app.' . session('role') . '.profile') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"
-                            href="{{ route('app.' . session('role') . '.dashboard') }}" wire:navigate>
-                            @svg('m-user', 'w-6 h-6')
+                            href="{{ route('app.' . session('role') . '.profile') }}" wire:navigate>
+                            @svg('c-user', 'w-6 h-6')
                             <span>Profile</span>
                         </a>
                     </li>
@@ -122,8 +123,8 @@
                     {{-- Settings --}}
                     <li>
                         <a class="{{ request()->routeIs('app.' . session('role') . '.settings') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"
-                            href="{{ route('app.' . session('role') . '.dashboard') }}" wire:navigate>
-                            @svg('m-cog', 'w-6 h-6')
+                            href="{{ route('app.' . session('role') . '.settings') }}" wire:navigate>
+                            @svg('c-cog', 'w-6 h-6')
                             <span>Settings</span>
                         </a>
                     </li>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full font-satoshi">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="ltr" class="h-full font-satoshi">
 
 <head>
     <meta charset="UTF-8">
@@ -17,7 +17,6 @@
     @guest
     <main class="h-full antialiased">
         {{ $slot }}
-        <livewire:notifications>
     </main>
     @endguest
 
@@ -27,13 +26,17 @@
         <livewire:dashboard.sidebar />
 
         {{-- Header & Navigation --}}
-        <section class="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+        <section
+            class="absolute top-0 right-0 w-full h-screen lg:static flex flex-1 flex-col overflow-y-hidden overflow-x-hidden">
             <livewire:dashboard.header />
-            {{ $slot }}
-            <livewire:notifications>
+            <div class="scrollbar overflow-y-auto">
+                {{ $slot }}
+            </div>
         </section>
     </main>
     @endauth
+
+    <livewire:notifications />
 
     @livewireScriptConfig
     @filamentScripts
