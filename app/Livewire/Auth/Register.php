@@ -6,6 +6,7 @@ use App\Livewire\Forms\RegisterForm;
 use App\Models\Country;
 use App\Models\Lga;
 use App\Models\State;
+use Filament\Notifications\Notification;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -27,6 +28,12 @@ class Register extends Component
     public function register()
     {
         $this->form->store();
+
+        Notification::make()
+            ->title('Registration Success')
+            ->body('Welcome ' . auth()->user()->first_name . '!')
+            ->success()
+            ->send();
 
         $this->redirectRoute('app.admin.dashboard');
     }

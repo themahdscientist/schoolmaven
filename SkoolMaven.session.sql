@@ -3,4 +3,5 @@
 -- SELECT name FROM states
 -- WHERE id = 16;
 
--- select * from `states` where `states`.`id` in (1, 80, 3)
+--@block
+SELECT * FROM users WHERE id IN (1);

@@ -17,7 +17,7 @@ class Logout extends Component
 
         Notification::make()
             ->title('Logout Success')
-            ->body('See ya!')
+            ->body('You\'ve been redirected.')
             ->success()
             ->send();
 

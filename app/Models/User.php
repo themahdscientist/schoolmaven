@@ -113,4 +113,19 @@ class User extends Authenticatable implements CanResetPassword //, MustVerifyEma
     {
         return $this->belongsTo(Lga::class);
     }
+
+    public function nationality(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'nationality_id');
+    }
+
+    public function stateOrigin(): BelongsTo
+    {
+        return $this->belongsTo(State::class, 'state_origin_id');
+    }
+
+    public function lgaOrigin(): BelongsTo
+    {
+        return $this->belongsTo(Lga::class, 'lga_origin_id');
+    }
 }

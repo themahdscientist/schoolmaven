@@ -7,6 +7,7 @@ use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -104,6 +105,21 @@ class Profile extends Component implements HasForms
                                                 ->label('Date of Birth')
                                                 ->native(false)
                                                 ->required(),
+                                            Select::make('country')
+                                                ->label('Country of Residence')
+                                                ->required()
+                                                ->relationship('country', 'name')
+                                                ->native(false),
+                                            Select::make('state_residency')
+                                                ->label('State of Residence')
+                                                ->required()
+                                                ->relationship('state', 'name')
+                                                ->native(false),
+                                            Select::make('lga_residency')
+                                                ->label('City of Residence')
+                                                ->required()
+                                                ->relationship('lga', 'name')
+                                                ->native(false),
                                         ])
                                 ]),
                             Tabs\Tab::make('School Information')
@@ -134,19 +150,15 @@ class Profile extends Component implements HasForms
                                                                     'ntl' => 'National',
                                                                     'rgl' => 'Regional',
                                                                 ]),
-                                                            Fieldset::make()
+                                                            KeyValue::make('info')
                                                                 ->label('Contact Information')
-                                                                ->schema([
-                                                                    KeyValue::make('info')
-                                                                        ->label('')
-                                                                        ->addable(false)
-                                                                        ->deletable(false)
-                                                                        ->keyLabel('Methods')
-                                                                        ->editableKeys(false)
-                                                                        ->valueLabel('Value')
-                                                                        ->reorderable()
-                                                                        ->columnSpanFull(),
-                                                                ]),
+                                                                ->addable(false)
+                                                                ->deletable(false)
+                                                                ->keyLabel('Methods')
+                                                                ->editableKeys(false)
+                                                                ->valueLabel('Value')
+                                                                ->reorderable()
+                                                                ->columnSpanFull(),
                                                             KeyValue::make('affiliation')
                                                                 ->label('Exam Affiliates')
                                                                 ->addable(false)
@@ -172,39 +184,37 @@ class Profile extends Component implements HasForms
                                                     Section::make()
                                                         ->description('Additional Info')
                                                         ->schema([
-                                                            Fieldset::make()
-                                                                ->label('Location Status')
+                                                            Grid::make()
                                                                 ->schema([
                                                                     TextInput::make('address')
                                                                         ->required()
-                                                                        ->maxLength(255)
-                                                                        ->columnSpanFull(),
+                                                                        ->maxLength(255),
                                                                     Select::make('country')
                                                                         ->relationship('country', 'name')
                                                                         ->required()
-                                                                        ->native(false)
-                                                                        ->columnSpanFull(),
+                                                                        ->native(false),
                                                                     Select::make('state')
                                                                         ->relationship('state', 'name')
                                                                         ->required()
-                                                                        ->native(false)
-                                                                        ->columnSpanFull(),
+                                                                        ->native(false),
                                                                     Select::make('lga')
                                                                         ->relationship('lga', 'name')
                                                                         ->required()
-                                                                        ->native(false)
-                                                                        ->columnSpanFull(),
+                                                                        ->native(false),
                                                                 ]),
-                                                            TextInput::make('smil_code')
-                                                                ->label('SMIL Code')
-                                                                ->readOnly()
-                                                                ->required(),
-                                                            FileUpload::make('logo')
-                                                                ->image()
-                                                                ->imageEditor()
-                                                                ->maxSize(1024)
-                                                                ->disk('public')
-                                                                ->fetchFileInformation(false),
+                                                            Grid::make()
+                                                                ->schema([
+                                                                    FileUpload::make('logo')
+                                                                        ->image()
+                                                                        ->imageEditor()
+                                                                        ->maxSize(1024)
+                                                                        ->disk('public')
+                                                                        ->fetchFileInformation(false),
+                                                                    TextInput::make('smil_code')
+                                                                        ->label('SMIL Code')
+                                                                        ->readOnly()
+                                                                        ->required(),
+                                                                ]),
                                                         ])
                                                         ->collapsible(),
                                                 ])
@@ -219,7 +229,7 @@ class Profile extends Component implements HasForms
                         ]),
                     Section::make('Security')
                         ->description('Change your password and profile picture here')
-                        ->icon('c-lock-closed')
+                        ->icon('c-shield-check')
                         ->schema([
                             FileUpload::make('avatar')
                                 ->label('Profile Picture')
@@ -228,6 +238,27 @@ class Profile extends Component implements HasForms
                                 ->maxSize(1024)
                                 ->disk('public')
                                 ->fetchFileInformation(false),
+                            Grid::make()
+                                ->schema([
+                                    Select::make('nationality')
+                                        ->label('Nationality')
+                                        ->relationship('nationality', 'name')
+                                        ->required()
+                                        ->native(false),
+                                    Select::make('state_origin')
+                                        ->label('State of Origin')
+                                        ->relationship('stateOrigin', 'name')
+                                        ->required()
+                                        ->native(false),
+                                    Select::make('lga_origin')
+                                        ->label('LGA')
+                                        ->relationship('lgaOrigin', 'name')
+                                        ->required()
+                                        ->native(false),
+                                    TextInput::make('postal_code')
+                                        ->required()
+                                        ->maxLength(10),
+                                ]),
                             Actions::make([
                                 Actions\Action::make('Change Password')
                                     ->icon('c-lock-closed')
