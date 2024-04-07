@@ -51,7 +51,7 @@
                 class="absolute right-0 mt-4 flex w-60 flex-col rounded border border-secondary bg-light shadow dark:border-neutral-600 dark:bg-dark dark:text-secondary">
                 <ul class="flex flex-col gap-y-2 border-b border-neutral-300 p-2 pb-4 dark:border-neutral-600">
                     <li>
-                        <a href=""
+                        <a wire:navigate href="{{ route('app.admin.profile') }}"
                             class="flex items-center gap-3.5 rounded px-4 py-2 text-sm font-medium duration-300 ease-in-out hover:bg-primary hover:text-light dark:hover:bg-primary dark:hover:text-light lg:text-base">
                             @svg('c-user-circle', 'w-6 h-6')
                             <span>My Profile</span>
@@ -59,7 +59,7 @@
                     </li>
                     @can('view-admin')
                     <li>
-                        <a href=""
+                        <a wire:navigate href="{{ route('app.admin.profile') }}"
                             class="flex items-center gap-3.5 rounded px-4 py-2 text-sm font-medium duration-300 ease-in-out hover:bg-primary hover:text-light dark:hover:bg-primary dark:hover:text-light lg:text-base">
                             @svg('c-newspaper', 'w-6 h-6')
                             <span>Advertise</span>
@@ -67,7 +67,7 @@
                     </li>
                     @endcan
                     <li>
-                        <a href=""
+                        <a wire:navigate href="{{ route('app.admin.settings') }}"
                             class="flex items-center gap-3.5 rounded px-4 py-2 text-sm font-medium duration-300 ease-in-out hover:bg-primary hover:text-light dark:hover:bg-primary dark:hover:text-light lg:text-base">
                             @svg('c-cog', 'w-6 h-6')
                             <span>Account Settings</span>

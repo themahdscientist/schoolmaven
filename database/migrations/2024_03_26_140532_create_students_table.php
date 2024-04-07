@@ -14,15 +14,12 @@ return new class extends Migration
         Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('guardian_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('guardian_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignId('grade_id')->constrained();
             $table->string('admission_number')->unique();
-            $table->foreignId('nationality')->constrained('countries');
-            $table->foreignId('state_origin')->constrained('states');
-            $table->foreignId('lga_origin')->constrained('lgas');
-            $table->enum('religion', ['christianity', 'islam', 'other']);
             $table->enum('blood_group', ['A', 'B', 'AB', 'O']);
-            $table->enum('rhesus_factor', ['Rh-positive', 'Rh-negative']);
-            $table->string('emergency_contact');
+            $table->enum('rhesus_factor', ['Rh+', 'Rh-']);
+            $table->string('emergency_phone');
             $table->enum('status', ['active', 'inactive', 'graduated'])->default('active');
             $table->timestamps();
         });

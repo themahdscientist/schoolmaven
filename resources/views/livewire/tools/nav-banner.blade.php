@@ -27,8 +27,10 @@
         class="sticky top-0 z-50 flex items-center justify-between bg-light bg-opacity-75 py-4 px-8 xl:px-20 xl:py-2 backdrop-blur-lg dark:bg-dark dark:bg-opacity-75">
         <a wire:navigate href="{{ route('index') }}" class="flex gap-2 items-center justify-center">
             <img class="w-8 lg:w-12 block" src="{{ asset('favicon.svg') }}" alt="logo">
-            <span
-                class="my-au font-aladin text-dark dark:text-light text-3xl lg:text-4xl font-bold">{{ __(Str::lower(config('app.name'))) }}</span>
+            <p class="font-aladin text-dark dark:text-light font-bold flex flex-col items-center">
+                <span class="text-3xl lg:text-4xl">{{ __(Str::lower(config('app.name'))) }}</span>
+                <small class="lg:text-base tracking-wider">by JavaTechnovation</small>
+            </p>
         </a>
         <div class="flex items-center justify-between gap-x-4 xl:gap-x-16">
             <ul x-cloak

@@ -1,4 +1,4 @@
-: BelongsTo<?php
+<?php
 
 namespace App\Models;
 
@@ -34,5 +34,10 @@ class Student extends Model
     public function guardian(): BelongsTo
     {
         return $this->belongsTo(Guardian::class);
+    }
+
+    public function grade(): BelongsTo
+    {
+        return $this->belongsTo(Grade::class);
     }
 }

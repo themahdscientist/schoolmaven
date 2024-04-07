@@ -54,6 +54,7 @@
     .fi-ta-header-toolbar,
     .fi-ta-selection-indicator,
     .fi-modal-window,
+    .fi-modal-header,
     .fi-dropdown-panel,
     .fi-pagination,
     .fi-ta-filter-indicators,
@@ -103,5 +104,9 @@
 
     .fi-checkbox-input {
         @apply checked:!bg-primary focus:ring-primary;
+    }
+
+    .fi-fo-field-wrp-error-message {
+        @apply text-danger;
     }
 }

@@ -27,8 +27,10 @@
         class="sticky top-0 z-50 flex items-center justify-between bg-light bg-opacity-75 py-4 px-8 lg:px-4 xl:px-12 xl:py-2 backdrop-blur-lg dark:bg-dark dark:bg-opacity-75">
         <a wire:navigate href="{{ route('index') }}" class="flex gap-2 items-center justify-center">
             <img class="w-8 lg:w-12 block" src="{{ asset('favicon.svg') }}" alt="logo">
-            <span
-                class="my-au font-aladin text-dark dark:text-light text-3xl lg:text-4xl font-bold">{{ __(Str::lower(config('app.name'))) }}</span>
+            <p class="font-aladin text-dark dark:text-light font-bold flex flex-col items-center">
+                <span class="text-3xl lg:text-4xl">{{ __(Str::lower(config('app.name'))) }}</span>
+                <small class="lg:text-base tracking-wider">by JavaTechnovation</small>
+            </p>
         </a>
         <div class="flex items-center justify-between gap-x-4 xl:gap-x-16">
             <ul x-cloak
@@ -1088,8 +1090,8 @@
                     <div class="w-full p-4 md:w-1/2 lg:w-1/4">
                         <div class="group mb-8 rounded-xl bg-secondary lg:p-6 px-5 py-10 dark:bg-body-dark">
                             <div class="relative z-10 mx-auto mb-5 h-28 w-28">
-                                <img loading="lazy" src="{{ asset('src/images/website/team/team-04.png') }}" alt="team image"
-                                    class="h-28 w-28 rounded-full" />
+                                <img loading="lazy" src="{{ asset('src/images/website/team/team-04.png') }}"
+                                    alt="team image" class="h-28 w-28 rounded-full" />
                                 <span
                                     class="absolute bottom-0 left-0 -z-10 h-10 w-10 rounded-full bg-primary opacity-0 transition-all group-hover:opacity-100"></span>
                                 <span
@@ -1252,8 +1254,8 @@
                     <div class="w-full p-4 md:w-1/2 lg:w-1/4">
                         <div class="group mb-8 rounded-xl bg-secondary lg:p-6 px-5 py-10 dark:bg-body-dark">
                             <div class="relative z-10 mx-auto mb-5 h-28 w-28">
-                                <img loading="lazy" src="{{ asset('src/images/website/team/team-04.png') }}" alt="team image"
-                                    class="h-28 w-28 rounded-full" />
+                                <img loading="lazy" src="{{ asset('src/images/website/team/team-04.png') }}"
+                                    alt="team image" class="h-28 w-28 rounded-full" />
                                 <span
                                     class="absolute bottom-0 left-0 -z-10 h-10 w-10 rounded-full bg-primary opacity-0 transition-all group-hover:opacity-100"></span>
                                 <span
@@ -1416,8 +1418,8 @@
                     <div class="w-full p-4 md:w-1/2 lg:w-1/4">
                         <div class="group mb-8 rounded-xl bg-secondary lg:p-6 px-5 py-10 dark:bg-body-dark">
                             <div class="relative z-10 mx-auto mb-5 h-28 w-28">
-                                <img loading="lazy" src="{{ asset('src/images/website/team/team-04.png') }}" alt="team image"
-                                    class="h-28 w-28 rounded-full" />
+                                <img loading="lazy" src="{{ asset('src/images/website/team/team-04.png') }}"
+                                    alt="team image" class="h-28 w-28 rounded-full" />
                                 <span
                                     class="absolute bottom-0 left-0 -z-10 h-10 w-10 rounded-full bg-primary opacity-0 transition-all group-hover:opacity-100"></span>
                                 <span
@@ -1580,8 +1582,8 @@
                     <div class="w-full p-4 md:w-1/2 lg:w-1/4">
                         <div class="group mb-8 rounded-xl bg-secondary lg:p-6 px-5 py-10 dark:bg-body-dark">
                             <div class="relative z-10 mx-auto mb-5 h-28 w-28">
-                                <img loading="lazy" src="{{ asset('src/images/website/team/team-04.png') }}" alt="team image"
-                                    class="h-28 w-28 rounded-full" />
+                                <img loading="lazy" src="{{ asset('src/images/website/team/team-04.png') }}"
+                                    alt="team image" class="h-28 w-28 rounded-full" />
                                 <span
                                     class="absolute bottom-0 left-0 -z-10 h-10 w-10 rounded-full bg-primary opacity-0 transition-all group-hover:opacity-100"></span>
                                 <span
@@ -1854,8 +1856,10 @@
                     <div class="mb-6 md:mb-0">
                         <a wire:navigate href="{{ route('index') }}" class="flex gap-2 items-center justify-center">
                             <img class="w-8 lg:w-12 block" src="{{ asset('favicon.svg') }}" alt="logo">
-                            <span
-                                class="my-au font-aladin text-light text-3xl lg:text-4xl font-bold">{{ __(Str::lower(config('app.name'))) }}</span>
+                            <p class="font-aladin text-light font-bold flex flex-col items-center">
+                                <span class="text-3xl lg:text-4xl">{{ __(Str::lower(config('app.name'))) }}</span>
+                                <small class="lg:text-base tracking-wider">by JavaTechnovation</small>
+                            </p>
                         </a>
                     </div>
                     <div class="grid grid-cols-2 gap-8 md:grid-cols-3 md:gap-6">

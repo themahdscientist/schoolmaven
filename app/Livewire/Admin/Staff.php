@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\Country;
 use App\Models\Lga;
+use App\Models\Role;
 use App\Models\State;
 use App\Models\User;
 use Filament\Forms\Components\DatePicker;
@@ -21,6 +22,7 @@ use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -41,7 +43,8 @@ class Staff extends Component implements HasForms, HasTable
                     ->outlined()
                     ->modalWidth(MaxWidth::FitContent)
                     ->closeModalByClickingAway(false)
-                    ->stickyModalHeader(true)
+                    ->stickyModalHeader()
+                    ->stickyModalFooter()
                     ->modalHeading('Staff Registration')
                     ->modalDescription('Create a staff member')
                     ->skippableSteps()
@@ -131,16 +134,16 @@ class Staff extends Component implements HasForms, HasTable
                                 Select::make('state_origin')
                                     ->label('State of Origin')
                                     ->placeholder('Select an option')
-                                    ->options(fn (Get $get): Collection => State::query()->where('country_id', $get('country'))->pluck('name', 'id'))
+                                    ->options(fn (Get $get): Collection => State::query()->where('country_id', (int) $get('nationality'))->pluck('name', 'id'))
                                     ->searchable()
                                     ->required()
                                     ->native(false)
                                     ->live(true)
-                                    ->afterStateUpdated(fn (Set $set) => $set('lga', null)),
+                                    ->afterStateUpdated(fn (Set $set) => $set('lga_origin', null)),
                                 Select::make('lga_origin')
-                                    ->label('LGA of Origin')
+                                    ->label('LGA')
                                     ->placeholder('Select an option')
-                                    ->options(fn (Get $get) => Lga::query()->where('state_id', $get('state'))->pluck('name', 'id'))
+                                    ->options(fn (Get $get) => Lga::query()->where('state_id', (int) $get('state_origin'))->pluck('name', 'id'))
                                     ->searchable()
                                     ->required()
                                     ->native(false)
@@ -157,6 +160,7 @@ class Staff extends Component implements HasForms, HasTable
                                     ->maxSize(1024)
                                     ->maxFiles(3)
                                     ->disk('public')
+                                    ->directory('qualifications')
                             ]),
                         Step::make('Contact & Security Info')
                             ->description('Residency & security data.')
@@ -170,7 +174,7 @@ class Staff extends Component implements HasForms, HasTable
                                     ->maxLength(255)
                                     ->live(true),
                                 Select::make('country')
-                                    ->label('Country')
+                                    ->label('Country of Residence')
                                     ->placeholder('Select an option')
                                     ->options(Country::query()->where('id', '1')->pluck('name', 'id'))
                                     ->default(Country::query()->find(1)->value('id'))
@@ -178,18 +182,18 @@ class Staff extends Component implements HasForms, HasTable
                                     ->required()
                                     ->native(false),
                                 Select::make('state')
-                                    ->label('State')
+                                    ->label('State of Residence')
                                     ->placeholder('Select an option')
-                                    ->options(fn (Get $get): Collection => State::query()->where('country_id', $get('country'))->pluck('name', 'id'))
+                                    ->options(fn (Get $get): Collection => State::query()->where('country_id', (int) $get('country'))->pluck('name', 'id'))
                                     ->searchable()
                                     ->required()
                                     ->native(false)
                                     ->live(true)
                                     ->afterStateUpdated(fn (Set $set) => $set('lga', null)),
                                 Select::make('lga')
-                                    ->label('LGA')
+                                    ->label('City of Residence')
                                     ->placeholder('Select an option')
-                                    ->options(fn (Get $get) => Lga::query()->where('state_id', $get('state'))->pluck('name', 'id'))
+                                    ->options(fn (Get $get): Collection => Lga::query()->where('state_id', (int) $get('state'))->pluck('name', 'id'))
                                     ->searchable()
                                     ->required()
                                     ->native(false)
@@ -225,13 +229,13 @@ class Staff extends Component implements HasForms, HasTable
                                     ->placeholder('********')
                                     ->required()
                                     ->password()
-                                    ->revealable()
+                                    ->revealable(),
 
                             ]),
                     ])
             ])
-            ->query(User::query()->whereHas('roles', function ($query) {
-                $query->where('name', 'staff');
+            ->query(User::query()->whereHas('roles', function (Builder $query) {
+                $query->where('roles.id', Role::STAFF);
             }))
             ->columns([
                 TextColumn::make('username'),

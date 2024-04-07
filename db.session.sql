@@ -4,4 +4,7 @@
 -- WHERE id = 16;
 
 --@block
-SELECT * FROM users WHERE id IN (1);
+-- SELECT * FROM users WHERE id IN (1);
+
+--@block
+select `name`, `id` from `lgas` where `state_id` = 2

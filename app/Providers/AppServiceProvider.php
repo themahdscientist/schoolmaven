@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Observers\UserObserver;
 use Filament\Support\Colors\Color;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -23,6 +24,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        User::observe(UserObserver::class);
+
         Gate::define('view-admin', function (User $user) {
             return $user->roles->contains('name', 'admin') && (session('role') == 'admin');
         });

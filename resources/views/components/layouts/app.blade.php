@@ -21,13 +21,13 @@
     @endguest
 
     @auth
-    <main x-data="{ sidebarToggle: false }" class="flex bg-secondary dark:bg-dark">
+    <main x-data="{ sidebarToggle: false }" class="flex">
         {{-- Control Panel | Sidebar --}}
         <livewire:dashboard.sidebar />
 
         {{-- Header & Navigation --}}
         <section
-            class="absolute top-0 right-0 w-full h-screen lg:static flex flex-1 flex-col overflow-y-hidden overflow-x-hidden">
+            class="absolute top-0 right-0 w-full h-screen lg:static flex flex-1 flex-col overflow-y-hidden overflow-x-hidden bg-secondary dark:bg-dark">
             <livewire:dashboard.header />
             <div class="scrollbar overflow-y-auto">
                 {{ $slot }}
