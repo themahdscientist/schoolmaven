@@ -7,4 +7,4 @@
 -- SELECT * FROM users WHERE id IN (1);
 
 --@block
-select `name`, `id` from `lgas` where `state_id` = 2
+select * from `students` where exists (select * from `users` where `students`.`user_id` = `users`.`id` and exists (select * from `schools` where `users`.`school_id` = `schools`.`id` and `id` = 1)) order by `admission_number` desc;

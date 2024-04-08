@@ -9,6 +9,7 @@ use App\Models\State;
 use App\Models\School;
 use App\Models\Country;
 use App\Models\Role;
+use Carbon\Carbon;
 use Illuminate\Auth\Events\Registered;
 use Livewire\Attributes\Validate;
 
@@ -145,18 +146,24 @@ class RegisterForm extends Form
 
     protected function generateUsername(): mixed
     {
-        return strtolower($this->u_fname . substr($this->u_lname, 0, 1) . substr($this->u_lname, -1, 1));
+        $date = Carbon::now()->year;
+        $hour  = Carbon::now()->hour;
+        $second  = Carbon::now()->second;
+        return substr($date, 0, 2) . strtolower($this->u_fname . substr($this->u_lname, 0, 1) . substr($this->u_lname, -1, 1)) . substr($date, -2) . $hour . $second;
     }
 
     protected function generateAdminCode(): mixed
     {
+        $date = Carbon::now()->year;
+        $hour  = Carbon::now()->hour;
+        $second  = Carbon::now()->second;
         $positionShortForms = [
             'administrator' => 'ADM',
             'principal' => 'PRN',
             'owner' => 'OWN',
         ];
 
-        return $this->generateSMILCode() . $positionShortForms[$this->u_position];
+        return substr($date, 0, 2) . $this->generateSMILCode() . $positionShortForms[$this->u_position] . substr($date, -2) . $hour . $second;
     }
 
     public function store()
@@ -165,7 +172,6 @@ class RegisterForm extends Form
 
         // School
         $school = new School;
-
         $school->smil_code = $this->generateSMILCode();
         $school->name = $this->s_name;
         $school->alias = $this->s_alias;
@@ -185,12 +191,10 @@ class RegisterForm extends Form
         $school->vision = $this->s_vision;
         $school->established_date = $this->s_est;
         $school->logo = $this->s_logo->store('logos', 'public');
-
         $school->save();
 
         // User
         $user = new User;
-
         $user->school_id = $school->id;
         $user->username = $this->generateUsername();
         $user->email = $this->u_email;
@@ -211,18 +215,14 @@ class RegisterForm extends Form
         $user->state_origin_id = $this->state;
         $user->nationality_id = $this->country;
         $user->avatar = $this->u_avatar->store('avatars', 'public');
-
         $user->save();
-
         $user->roles()->attach(Role::ADMIN);
 
         // Admin
         $admin = new Administrator;
-
         $admin->user_id = $user->id;
         $admin->administrator_code = $this->generateAdminCode();
         $admin->position = $this->u_position;
-
         $admin->save();
 
         request()->session()->regenerate();

@@ -1608,7 +1608,7 @@
                             href="{{ route('terms') }}"
                             class="font-medium text-primary hover:underline transition focus:outline-none focus:underline">Terms
                             of
-                            Service</a> and are acknowledging our <a href="{{ route('privacy') }}"
+                            Service</a> and are acknowledging our <a wire:navigate href="{{ route('privacy') }}"
                             class="font-medium text-primary hover:underline transition focus:outline-none focus:underline">Privacy
                             Policy</a> applies.</p>
                 </div>
@@ -1638,7 +1638,7 @@
                 </button>
             </div>
             <p class="text-sm font-light text-body-dark/60 dark:text-secondary/60">
-                Already have an account? <a href="{{ route('app.login') }}"
+                Already have an account? <a wire:navigate href="{{ route('app.login') }}"
                     class="font-medium text-primary hover:underline transition focus:outline-none focus:underline">Sign
                     in</a>
             </p>

@@ -166,7 +166,7 @@
                     role="status" aria-hidden="true" />
             </button>
             <p class="text-sm font-light text-body-dark/60 dark:text-secondary/60">
-                Don&apos;t have an account yet? <a href="{{ route('app.register') }}"
+                Don&apos;t have an account yet? <a wire:navigate href="{{ route('app.register') }}"
                     class="font-medium text-primary hover:underline transition focus:outline-none focus:underline">Sign
                     up</a>
             </p>

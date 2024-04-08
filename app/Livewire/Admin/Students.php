@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Models\Grade;
 use App\Models\State;
 use App\Models\Country;
+use App\Models\Student;
+use Carbon\Carbon;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Livewire\Component;
@@ -26,7 +28,9 @@ use Filament\Tables\Actions\CreateAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Wizard\Step;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Notifications\Notification;
 use Filament\Tables\Concerns\InteractsWithTable;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Database\Eloquent\Model;
 
 #[Title('Student')]
@@ -197,12 +201,32 @@ class Students extends Component implements HasForms, HasTable
                                     ->prefixIcon('c-phone')
                                     ->prefix('+234')
                                     ->placeholder('7059753934'),
+                                Select::make('guardian_id')
+                                    ->label('Guardian (Parent)')
+                                    ->placeholder('Select a guardian')
+                                    ->options(User::query()->whereHas('roles', function (Builder $query) {
+                                        $query->where('roles.id', Role::GUARDIAN);
+                                    })
+                                        ->pluck('last_name', 'id'))
+                                    ->searchable()
+                                    ->nullable()
+                                    ->native(false),
                                 Select::make('blood_group')
-                                    ->options(['A', 'B', 'AB', 'O'])
+                                    ->label('Blood Group')
+                                    ->options([
+                                        'A' => 'A',
+                                        'B' => 'B',
+                                        'AB' => 'AB',
+                                        'O' => 'O',
+                                    ])
                                     ->required()
                                     ->native(false),
-                                Select::make('rhesus')
-                                    ->options(['Rh+', 'Rh-'])
+                                Select::make('rhesus_factor')
+                                    ->label('Rhesus')
+                                    ->options([
+                                        'Rh+' => 'Rh+',
+                                        'Rh-' => 'Rh-',
+                                    ])
                                     ->required()
                                     ->native(false),
                             ]),
@@ -210,7 +234,8 @@ class Students extends Component implements HasForms, HasTable
                             ->description('Grade, passport, and password data.')
                             ->columns(2)
                             ->schema([
-                                Select::make('grade')
+                                Select::make('grade_id')
+                                    ->label('Grade')
                                     ->options(Grade::all()->pluck('name', 'id'))
                                     ->searchable()
                                     ->required()
@@ -231,10 +256,77 @@ class Students extends Component implements HasForms, HasTable
                             ])
                     ])
                     ->model(User::class)
-                    // ->mutateFormDataUsing(function (array $data) {
-                    //     $data['admission_number'] = ;
-                    // })
-                    ->using(function (array $data, string $model) {
+                    ->mutateFormDataUsing(function (array $data, string $model) {
+                        $date = Carbon::now()->year;
+                        $school = $model::query()->find(auth()->id())->school;
+
+                        $last_student = Student::query()->whereHas('user.school', function (Builder $query) use ($school) {
+                            $query->where('id', $school->id);
+                        })
+                            ->latest('admission_number')
+                            ->first();
+
+                        $serial = $last_student ? intval(substr($last_student->admission_number, 6, 4)) + 1 : 1;
+                        $serial = str_pad($serial, 4, '0', STR_PAD_LEFT);
+                        $smil_code = $school->smil_code;
+                        $code = substr($smil_code, 0, 4);
+                        $first = substr($date, 0, 2);
+                        $last = substr($date, -2);
+
+                        $data['admission_number'] = $first . $code . $serial . $last;
+                        return $data;
+                    })
+                    ->using(function (array $data, string $model): Model {
+                        $user = new $model;
+                        $user->school_id = $model::query()->find(auth()->id())->school->id;
+                        $user->username = $this->generateUsername($data['first_name'], $data['last_name']);
+                        $user->email = $data['email'];
+                        $user->password = $data['password'];
+                        $user->first_name = $data['first_name'];
+                        $user->middle_name = $data['middle_name'];
+                        $user->last_name = $data['last_name'];
+                        $user->gender = $data['gender'];
+                        $user->dob = $data['dob'];
+                        $user->religion = $data['religion'];
+                        $user->phone = '+234' . $data['phone'];
+                        $user->address = $data['address'];
+                        $user->postal_code = $data['postal_code'];
+                        $user->lga_id = $data['lga'];
+                        $user->state_id = $data['state'];
+                        $user->country_id = 1;
+                        $user->lga_origin_id = $data['lga_origin'];
+                        $user->state_origin_id = $data['state_origin'];
+                        $user->nationality_id = 1;
+                        $user->avatar = $data['avatar'];
+                        $user->save();
+                        $user->roles()->attach(Role::STUDENT);
+
+                        // Student
+                        $student = new Student;
+                        $student->user_id = $user->id;
+                        $student->guardian_id = $data['guardian_id'];
+                        $student->grade_id = $data['grade_id'];
+                        $student->admission_number = $data['admission_number'];
+                        $student->blood_group = $data['blood_group'];
+                        $student->rhesus_factor = $data['rhesus_factor'];
+                        $student->emergency_phone = '+234' . $data['ecn'];
+                        $student->save();
+
+                        event(new Registered($user));
+
+                        Notification::make()
+                            ->title('Admission Success')
+                            ->body('Student has been provisioned 🎉')
+                            ->success()
+                            ->send();
+
+                        Notification::make()
+                            ->title('Congratulations!')
+                            ->body('You\ve been given provisional admission 🎉')
+                            ->success()
+                            ->sendToDatabase($user);
+
+                        return $user;
                     })
             ])
             ->query(User::query()->whereHas('roles', function (Builder $query) {
@@ -247,11 +339,14 @@ class Students extends Component implements HasForms, HasTable
             ])
             ->emptyStateIcon('c-user-group')
             ->emptyStateHeading('No students')
-            ->emptyStateDescription('Create a student to get started');;
+            ->emptyStateDescription('Create a student to get started');
     }
 
-    public function generateAdmissionNumber(): string
+    protected function generateUsername($u_fname, $u_lname): mixed
     {
-        return '';
+        $date = Carbon::now()->year;
+        $hour  = Carbon::now()->hour;
+        $second  = Carbon::now()->second;
+        return substr($date, 0, 2) . strtolower($u_fname . substr($u_lname, 0, 1) . substr($u_lname, -1, 1)) . substr($date, -2) . $hour . $second;
     }
 }

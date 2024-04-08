@@ -201,21 +201,21 @@ class Profile extends Component implements HasForms
                                                                         ->default(Country::query()->find(1)->value('id'))
                                                                         ->disabled()
                                                                         ->native(false),
-                                                                    Select::make('school_state')
-                                                                        ->label('State')
-                                                                        // ->relationship('state', 'name')
-                                                                        ->options(fn (Get $get): Collection => State::query()->where('country_id', (int) $get('school_country'))->pluck('name', 'id'))
-                                                                        ->searchable()
-                                                                        ->native(false)
-                                                                        ->live(true)
-                                                                        ->afterStateUpdated(fn (Set $set) => $set('school_lga', null)),
-                                                                    Select::make('school_lga')
-                                                                        ->label('LGA')
-                                                                        // ->relationship('lga', 'name')
-                                                                        ->options(fn (Get $get): Collection => Lga::query()->where('state_id', (int) $get('school_state'))->pluck('name', 'id'))
-                                                                        ->searchable()
-                                                                        ->native(false)
-                                                                        ->live(true),
+Select::make('school_state')
+->label('State')
+->relationship('state', 'name')
+->options(fn (Get $get): Collection => State::query()->where('country_id', (int) $get('school_country'))->pluck('name', 'id'))
+->searchable()
+->native(false)
+->live(true)
+->afterStateUpdated(fn (Set $set) => $set('school_lga', null)),
+Select::make('school_lga')
+->label('LGA')
+->relationship('lga', 'name')
+->options(fn (Get $get): Collection => Lga::query()->where('state_id', (int) $get('school_state'))->pluck('name', 'id'))
+->searchable()
+->native(false)
+->live(true),
                                                                 ]),
                                                             Grid::make()
                                                                 ->schema([

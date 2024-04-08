@@ -37,6 +37,7 @@
     @endauth
 
     <livewire:notifications />
+    <livewire:database-notifications />
 
     @livewireScriptConfig
     @filamentScripts

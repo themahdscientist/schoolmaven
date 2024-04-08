@@ -8,6 +8,9 @@
     </div>
     {{-- Students table --}}
     <div>
+        <button x-data="{}" x-on:click="$dispatch('open-modal', { id: 'notifications' })" type="button">
+            Notifications
+        </button>
         {{ $this->table }}
     </div>
 </section>

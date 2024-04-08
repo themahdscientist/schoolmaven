@@ -4,8 +4,10 @@ namespace App\Livewire\Admin;
 
 use App\AgeRange;
 use App\Models\Grade;
+use App\Models\Role;
 use App\Models\Staff;
 use App\Models\Subject;
+use App\Models\User;
 use App\Status;
 use Livewire\Component;
 use Filament\Actions\Action;
@@ -25,6 +27,7 @@ use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Forms\Components\CheckboxList;
+use Illuminate\Database\Eloquent\Builder;
 
 #[Title('Academics')]
 class Academics extends Component implements HasActions, HasForms
@@ -75,7 +78,12 @@ class Academics extends Component implements HasActions, HasForms
                         Select::make('year_head_id')
                             ->label('Year Head')
                             ->placeholder('Select a staff')
-                            ->options(Staff::all()->pluck('name', 'id'))
+                            ->options(
+                                User::query()->whereHas('roles', function (Builder $query) {
+                                    $query->where('roles.id', Role::STAFF);
+                                })
+                                    ->pluck('last_name', 'id')
+                            )
                             ->searchable()
                             ->native(false),
                         Select::make('age_range')

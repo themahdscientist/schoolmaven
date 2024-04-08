@@ -5,8 +5,9 @@
     {{-- SIDEBAR HEADER --}}
     <div :class="sidebarToggle ? 'justify-between' : 'justify-center'"
         class="flex items-center justify-center px-6 py-3 lg:py-4">
-        <a href="{{ route('app.' . session('role') . '.dashboard') }}" wire:navigate>
-            <x-filament::avatar :src="Storage::url($user->school->logo)" :alt="$user->school->name" :circular="false" size="lg" />
+        <a wire:navigate href="{{ route('app.' . session('role') . '.dashboard') }}" wire:navigate>
+            <x-filament::avatar :src="Storage::url($user->school->logo)" :alt="$user->school->name" :circular="false"
+                size="lg" />
         </a>
 
         <button class="block lg:hidden" @click.stop="sidebarToggle = !sidebarToggle">
@@ -44,11 +45,13 @@
                                 <x-filament::icon-button icon="c-ellipsis-vertical" tooltip="More options" size="lg" />
                             </x-slot>
                             <x-filament::dropdown.list>
-                                <x-filament::dropdown.list.item wire:click="grades" icon="c-rectangle-stack" icon-color="primary">
+                                <x-filament::dropdown.list.item wire:click="grades" icon="c-rectangle-stack"
+                                    icon-color="primary">
                                     Grades
                                 </x-filament::dropdown.list.item>
 
-                                <x-filament::dropdown.list.item wire:click="subjects" icon="c-rectangle-stack" icon-color="primary">
+                                <x-filament::dropdown.list.item wire:click="subjects" icon="c-rectangle-stack"
+                                    icon-color="primary">
                                     Subjects
                                 </x-filament::dropdown.list.item>
 
@@ -110,6 +113,8 @@
             <div>
                 <h3 class="mb-2 ml-4 text-sm font-medium text-neutral-500">ACCOUNT</h3>
                 <ul class="flex flex-col gap-1.5">
+                    {{-- Come back here and make changes to the student profile so you can uncomment this --}}
+                    @can('view-admin')
                     {{-- Profile --}}
                     <li>
                         <a class="{{ request()->routeIs('app.' . session('role') . '.profile') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"
@@ -129,6 +134,7 @@
                         </a>
                     </li>
                     {{-- Settings --}}
+                    @endcan
 
                     {{-- Logout --}}
                     <li>
@@ -140,6 +146,7 @@
         </nav>
         {{-- Sidebar Menu --}}
 
+        @can('view-admin')
         {{-- Promo Box --}}
         <div class="mx-auto my-4 w-4/5 py-4 px-8 text-center ring-4 ring-primary rounded">
             <h1 class="text-base font-bold uppercase">
@@ -149,48 +156,49 @@
             </h1>
             <p class="mb-4 px-2 text-sm font-medium text-secondary">Advertise your school for success&excl;</p>
             <button class="bg-primary py-2 w-full rounded-md font-extrabold text-sm text-light">START NOW</button>
-            <div>
-                <span class="absolute left-0 top-0 -z-10">
-                    <svg width="106" height="144" viewBox="0 0 106 144" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect opacity="0.1" x="-67" y="47.127" width="113.378" height="131.304"
-                            transform="rotate(-42.8643 -67 47.127)" fill="url(#paint0_linear_1416_214)" />
-                        <defs>
-                            <linearGradient id="paint0_linear_1416_214" x1="-10.3111" y1="47.127" x2="-10.3111"
-                                y2="178.431" gradientUnits="userSpaceOnUse">
-                                <stop stop-color="#F6F7F8" />
-                                <stop offset="1" stop-color="#4AAD52" stop-opacity="1" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                </span>
-                <span class="absolute right-0 top-0 -z-10">
-                    <svg width="130" height="97" viewBox="0 0 130 97" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect opacity="0.1" x="0.86792" y="-6.67725" width="155.563" height="140.614"
-                            transform="rotate(-42.8643 0.86792 -6.67725)" fill="url(#paint0_linear_1416_215)" />
-                        <defs>
-                            <linearGradient id="paint0_linear_1416_215" x1="78.6495" y1="-6.67725" x2="78.6495"
-                                y2="133.937" gradientUnits="userSpaceOnUse">
-                                <stop stop-color="#F6F7F8" />
-                                <stop offset="1" stop-color="#4AAD52" stop-opacity="1" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                </span>
-                <span class="absolute bottom-0 right-0 -z-10">
-                    <svg width="175" height="104" viewBox="0 0 175 104" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect opacity="0.1" x="175.011" y="108.611" width="101.246" height="148.179"
-                            transform="rotate(137.136 175.011 108.611)" fill="url(#paint0_linear_1416_216)" />
-                        <defs>
-                            <linearGradient id="paint0_linear_1416_216" x1="225.634" y1="108.611" x2="225.634"
-                                y2="256.79" gradientUnits="userSpaceOnUse">
-                                <stop stop-color="#F6F7F8" />
-                                <stop offset="0" stop-color="#4AAD52" stop-opacity="1" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                </span>
-            </div>
         </div>
         {{-- Promo Box --}}
+        @endcan
+        <div>
+            <span class="absolute left-0 top-0 -z-10">
+                <svg width="106" height="144" viewBox="0 0 106 144" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect opacity="0.1" x="-67" y="47.127" width="113.378" height="131.304"
+                        transform="rotate(-42.8643 -67 47.127)" fill="url(#paint0_linear_1416_214)" />
+                    <defs>
+                        <linearGradient id="paint0_linear_1416_214" x1="-10.3111" y1="47.127" x2="-10.3111" y2="178.431"
+                            gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#F6F7F8" />
+                            <stop offset="1" stop-color="#4AAD52" stop-opacity="1" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </span>
+            <span class="absolute right-0 top-0 -z-10">
+                <svg width="130" height="97" viewBox="0 0 130 97" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect opacity="0.1" x="0.86792" y="-6.67725" width="155.563" height="140.614"
+                        transform="rotate(-42.8643 0.86792 -6.67725)" fill="url(#paint0_linear_1416_215)" />
+                    <defs>
+                        <linearGradient id="paint0_linear_1416_215" x1="78.6495" y1="-6.67725" x2="78.6495" y2="133.937"
+                            gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#F6F7F8" />
+                            <stop offset="1" stop-color="#4AAD52" stop-opacity="1" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </span>
+            <span class="absolute bottom-0 right-0 -z-10">
+                <svg width="175" height="104" viewBox="0 0 175 104" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect opacity="0.1" x="175.011" y="108.611" width="101.246" height="148.179"
+                        transform="rotate(137.136 175.011 108.611)" fill="url(#paint0_linear_1416_216)" />
+                    <defs>
+                        <linearGradient id="paint0_linear_1416_216" x1="225.634" y1="108.611" x2="225.634" y2="256.79"
+                            gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#F6F7F8" />
+                            <stop offset="0" stop-color="#4AAD52" stop-opacity="1" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </span>
+        </div>
     </div>
 </aside>
