@@ -5,10 +5,8 @@ namespace App\Livewire\Admin;
 use App\AgeRange;
 use App\Models\Grade;
 use App\Models\Role;
-use App\Models\Staff;
 use App\Models\Subject;
 use App\Models\User;
-use App\Status;
 use Livewire\Component;
 use Filament\Actions\Action;
 use Livewire\Attributes\Title;
@@ -28,6 +26,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Forms\Components\CheckboxList;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 #[Title('Academics')]
 class Academics extends Component implements HasActions, HasForms
@@ -40,7 +39,6 @@ class Academics extends Component implements HasActions, HasForms
         return CreateAction::make('grade')
             ->icon('c-folder-plus')
             ->label('Create grade')
-            ->outlined()
             ->size(ActionSize::ExtraLarge)
             ->modalWidth(MaxWidth::ScreenMedium)
             ->modalHeading('Grade registration')
@@ -57,20 +55,17 @@ class Academics extends Component implements HasActions, HasForms
                             ->maxLength(100)
                             ->minLength(4)
                             ->autocomplete()
-                            ->autofocus()
-                            ->live(true),
+                            ->autofocus(),
                         DatePicker::make('start_date')
                             ->label('Start Date')
                             ->placeholder('Click to select a date')
                             ->required()
-                            ->native(false)
-                            ->live(true),
+                            ->native(false),
                         DatePicker::make('end_date')
                             ->label('End Date')
                             ->placeholder('Click to select a date')
                             ->required()
-                            ->native(false)
-                            ->live(true),
+                            ->native(false),
                     ]),
                 Fieldset::make('Grade Metadata')
                     ->columns(3)
@@ -95,7 +90,7 @@ class Academics extends Component implements HasActions, HasForms
                             ->native(false),
                         Select::make('status')
                             ->placeholder('Select an option')
-                            ->options(Status::class)
+                            ->options(\App\Status::class)
                             ->required()
                             ->native(false),
                     ]),
@@ -109,10 +104,12 @@ class Academics extends Component implements HasActions, HasForms
                 return $data;
             })
             ->using(function (array $data, string $model): Model {
-                return $model::create($data);
+                return DB::transaction(function () use ($model, $data) {
+                    return $model::create($data);
+                });
             })
             ->successNotificationTitle('Grade created')
-            ->successRedirectUrl(route('app.admin.academics.grades'));
+            ->successRedirectUrl(route('app.' . session('role') . '.academics.grades'));
     }
 
     public function subject(): Action
@@ -120,7 +117,6 @@ class Academics extends Component implements HasActions, HasForms
         return CreateAction::make('subject')
             ->icon('c-folder-plus')
             ->label('Create subject')
-            ->outlined()
             ->size(ActionSize::ExtraLarge)
             ->modalWidth(MaxWidth::Medium)
             ->modalHeading('Subject registration')
@@ -135,8 +131,7 @@ class Academics extends Component implements HasActions, HasForms
                             ->maxLength(100)
                             ->minLength(1)
                             ->autocomplete()
-                            ->autofocus()
-                            ->live(true),
+                            ->autofocus(),
                         Select::make('type')
                             ->placeholder('Select an option')
                             ->options([
@@ -157,21 +152,22 @@ class Academics extends Component implements HasActions, HasForms
                 return $data;
             })
             ->using(function (array $data, string $model): Model {
-                return $model::create($data);
+                return DB::transaction(function () use ($model, $data) {
+                    return $model::create($data);
+                });
             })
             ->successNotificationTitle('Subject created')
-            ->successRedirectUrl(route('app.admin.academics.subjects'));
+            ->successRedirectUrl(route('app.' . session('role') . '.academics.subjects'));
     }
 
     public function grade_subject(): Action
     {
         return CreateAction::make('grade_subject')
             ->icon('c-link')
-            ->label('Grade Subject Link')
-            ->outlined()
+            ->label('Grade-Subject Link')
             ->size(ActionSize::ExtraLarge)
             ->modalWidth(MaxWidth::Medium)
-            ->modalHeading('Grade Subject Linking')
+            ->modalHeading('Grade-Subject Linking')
             ->modalDescription('Link a subject to a grade')
             ->modalSubmitActionLabel('Link')
             ->createAnother(false)
@@ -185,18 +181,20 @@ class Academics extends Component implements HasActions, HasForms
                 CheckboxList::make('subjects')
                     ->options(Subject::all()->pluck('name', 'id'))
                     ->required()
-                    ->columns(2)
+                    ->columns()
                     ->searchable()
                     ->bulkToggleable(),
             ])
             ->model(Grade::class)
-            ->using(function (array $data, $model) {
+            ->using(function (array $data, string $model) {
                 $grades = $model::query()->findMany($data['grades']);
                 $subjects = Subject::query()->findMany($data['subjects']);
 
-                foreach ($grades as $grade) {
-                    $grade->subjects()->syncWithoutDetaching($subjects);
-                }
+                $grades->each(function ($grade) use ($subjects) {
+                    DB::transaction(function () use ($grade, $subjects) {
+                        $grade->subjects()->syncWithoutDetaching($subjects);
+                    });
+                });
             })
             ->successNotificationTitle('Linkage success');
     }

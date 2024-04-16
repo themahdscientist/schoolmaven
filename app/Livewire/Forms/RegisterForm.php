@@ -2,16 +2,17 @@
 
 namespace App\Livewire\Forms;
 
-use App\Models\Administrator;
+use Carbon\Carbon;
 use Livewire\Form;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\State;
 use App\Models\School;
 use App\Models\Country;
-use App\Models\Role;
-use Carbon\Carbon;
-use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Str;
+use App\Models\Administrator;
 use Livewire\Attributes\Validate;
+use Illuminate\Auth\Events\Registered;
 
 class RegisterForm extends Form
 {
@@ -149,7 +150,11 @@ class RegisterForm extends Form
         $date = Carbon::now()->year;
         $hour  = Carbon::now()->hour;
         $second  = Carbon::now()->second;
-        return substr($date, 0, 2) . strtolower($this->u_fname . substr($this->u_lname, 0, 1) . substr($this->u_lname, -1, 1)) . substr($date, -2) . $hour . $second;
+        return substr($date, 0, 2) .
+            strtolower(Str::trim($this->u_fname) .
+                substr(Str::trim($this->u_lname), 0, 1) .
+                substr(Str::trim($this->u_lname), -1, 1)) .
+            substr($date, -2) . $hour . $second;
     }
 
     protected function generateAdminCode(): mixed
@@ -163,7 +168,10 @@ class RegisterForm extends Form
             'owner' => 'OWN',
         ];
 
-        return substr($date, 0, 2) . $this->generateSMILCode() . $positionShortForms[$this->u_position] . substr($date, -2) . $hour . $second;
+        return substr($date, 0, 2) .
+            $this->generateSMILCode() .
+            $positionShortForms[$this->u_position] .
+            substr($date, -2) . $hour . $second;
     }
 
     public function store()

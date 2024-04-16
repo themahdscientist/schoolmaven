@@ -31,6 +31,12 @@
         </ul>
         {{-- Dark Mode Toggler --}}
 
+        {{-- Notifications --}}
+        <button x-data="{}" x-on:click="$dispatch('open-modal', { id: 'database-notifications' })" type="button">
+            Notifications
+        </button>
+        {{-- Notifications --}}
+
         {{-- User Area --}}
         <div class="relative" x-data="{ dropdownOpen: false }" @click.outside="dropdownOpen = false">
             <button class="flex items-center gap-4" @click.prevent="dropdownOpen = ! dropdownOpen">

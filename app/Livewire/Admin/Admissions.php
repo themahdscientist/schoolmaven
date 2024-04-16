@@ -12,110 +12,46 @@ use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Livewire\Component;
 use App\Models\Guardian;
-use Filament\Forms\Components\Actions;
-use Filament\Tables\Table;
 use Illuminate\Support\Str;
+use Filament\Actions\Action;
 use Livewire\Attributes\Title;
+use Filament\Actions\CreateAction;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Filament\Support\Enums\MaxWidth;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Support\Enums\ActionSize;
 use Illuminate\Auth\Events\Registered;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Contracts\HasTable;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Tables\Actions\CreateAction;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\Wizard\Step;
 use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Support\Enums\IconSize;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Enums\ActionsPosition;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Illuminate\Database\Eloquent\Builder;
 
-#[Title('Guardians')]
-class Guardians extends Component implements HasForms, HasTable
+#[Title('Admissions')]
+class Admissions extends Component implements HasActions, HasForms
 {
-    use InteractsWithTable;
+    use InteractsWithActions;
     use InteractsWithForms;
 
-    public function table(Table $table): Table
+    public function student(): Action
     {
-        return $table
-            ->heading('Guardians')
-            ->description('Manage your guardians (parents) here.')
-            ->striped()
-            ->headerActions([$this->guardianCreateAction()])
-            ->actions(
-                ActionGroup::make([
-                    $this->guardianEditAction(),
-                    DeleteAction::make(),
-                ]),
-                ActionsPosition::BeforeCells
-            )
-            ->query(User::query()->whereHas('roles', function (Builder $query) {
-                $query->where('roles.id', Role::GUARDIAN);
-            }))
-            ->columns([
-                ImageColumn::make('avatar')
-                    ->label('')
-                    ->circular(),
-                TextColumn::make('first_name')
-                    ->label('Name')
-                    ->formatStateUsing(fn ($state, $record) => $state . ' ' . $record->last_name)
-                    ->sortable(),
-                TextColumn::make('students_count')
-                    ->label('No. of Wards')
-                    ->counts('students')
-                    ->searchable(false),
-                TextColumn::make('email')
-                    ->sortable(),
-                TextColumn::make('phone')
-                    ->sortable(),
-                TextColumn::make('gender')
-                    ->sortable(),
-                TextColumn::make('religion')
-                    ->sortable(),
-                TextColumn::make('guardian.occupation')
-                    ->label('Occupation')
-                    ->sortable(),
-                TextColumn::make('guardian.marital_status')
-                    ->label('Marital Status')
-                    ->sortable(),
-                IconColumn::make('status')
-                    ->icon(fn (User $record): string => \App\StudentStatus::from($record->status)->getIcon())
-                    ->color(fn (User $record): string => \App\StudentStatus::from($record->status)->getColor())
-                    ->tooltip(fn (User $record): string => \App\StudentStatus::from($record->status)->getLabel()),
-            ])
-            ->emptyStateIcon('c-user-group')
-            ->emptyStateHeading('No guardians')
-            ->emptyStateDescription('Create a guardian to get started')
-            ->emptyStateActions([$this->guardianCreateAction()]);
-    }
-
-    public function guardianCreateAction(): Action
-    {
-        return CreateAction::make()
-            ->icon('c-document-plus')
-            ->label('New Guardian')
+        return CreateAction::make('student')
+            ->icon('c-user-plus')
+            ->label('New Student')
+            ->size(ActionSize::ExtraLarge)
             ->modalWidth(MaxWidth::FitContent)
             ->closeModalByClickingAway(false)
             ->stickyModalHeader()
             ->stickyModalFooter()
-            ->modalHeading('Guardian Admissions')
-            ->modalDescription('Enroll a guardian')
+            ->modalHeading('Student Admissions')
+            ->modalDescription('Enroll a student')
             ->skippableSteps()
             ->steps([
                 Step::make('Personal Info')
@@ -336,18 +272,22 @@ class Guardians extends Component implements HasForms, HasTable
                     ->title('Admission Success')
                     ->body('Guardian has been provisioned 🎉')
                     ->success()
-            );
+            )
+            ->successRedirectUrl(route('app.' . session('role') . '.students'));
     }
 
-    public function guardianEditAction(): Action
+    public function guardian(): Action
     {
-        return EditAction::make()
+        return CreateAction::make('guardian')
+            ->icon('c-user-plus')
+            ->label('New Guardian')
+            ->size(ActionSize::ExtraLarge)
+            ->modalWidth(MaxWidth::FitContent)
             ->closeModalByClickingAway(false)
             ->stickyModalHeader()
             ->stickyModalFooter()
-            ->modalWidth(MaxWidth::FitContent)
-            ->modalHeading('Guardian')
-            ->modalDescription('You can view and edit guardian information here')
+            ->modalHeading('Guardian Admissions')
+            ->modalDescription('Enroll a guardian')
             ->skippableSteps()
             ->steps([
                 Step::make('Personal Info')
@@ -382,6 +322,7 @@ class Guardians extends Component implements HasForms, HasTable
                             ->placeholder('tms@skoolmaven.com')
                             ->required()
                             ->maxLength(255)
+                            ->unique('users', 'email')
                             ->hintIcon('c-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
                         Select::make('gender')
                             ->label('Gender')
@@ -431,12 +372,12 @@ class Guardians extends Component implements HasForms, HasTable
                             ->required()
                             ->native(false)
                             ->live(true),
-                        Select::make('guardian.marital_status')
+                        Select::make('marital_status')
                             ->label('Marital Status')
                             ->options(\App\MaritalStatus::class)
                             ->required()
                             ->native(false),
-                        TextInput::make('guardian.occupation')
+                        TextInput::make('occupation')
                             ->required(),
                     ]),
                 Step::make('Contact & Account Info')
@@ -481,7 +422,6 @@ class Guardians extends Component implements HasForms, HasTable
                             ->hintIcon('c-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
                             ->nullable(),
                         TextInput::make('phone')
-                            ->formatStateUsing(fn ($state) => Str::substr($state, 4))
                             ->tel()
                             ->label('Phone Number')
                             ->prefix('+234')
@@ -489,56 +429,12 @@ class Guardians extends Component implements HasForms, HasTable
                             ->placeholder('7059753934')
                             ->autocomplete()
                             ->required(),
-                        Actions::make([
-                            Actions\Action::make('Change Password')
-                                ->icon('c-lock-closed')
-                                ->iconSize(IconSize::Small)
-                                ->modalWidth(MaxWidth::FitContent)
-                                ->modalHeading('Change Password')
-                                ->modalDescription('Confirm your old password before creating a new one')
-                                ->modalSubmitActionLabel('Change')
-                                ->form([
-                                    TextInput::make('password')
-                                        ->label('Current Password')
-                                        ->password()
-                                        ->revealable()
-                                        ->required(),
-                                    TextInput::make('new_password')
-                                        ->label('New Password')
-                                        ->password()
-                                        ->revealable()
-                                        ->required(),
-                                ])
-                                ->modalSubmitAction(function () {
-                                    Notification::make()
-                                        ->title('Info Alert')
-                                        ->body('On successful password update, every session logged in with this guardian will expire.')
-                                        ->info()
-                                        ->send();
-                                })
-                                ->afterFormValidated(function (array $data, User $record) {
-                                    if (Hash::check($data['password'], $record->password)) {
-                                        $record->forceFill([
-                                            'password' => Hash::make($data['new_password'])
-                                        ]);
-                                        $record->save();
-
-                                        Notification::make()
-                                            ->title('Password Updated')
-                                            ->success()
-                                            ->send();
-                                    } else {
-                                        $this->form->fill();
-                                        Notification::make()
-                                            ->title('Password Update Declined')
-                                            ->body('The password do not match our records')
-                                            ->danger()
-                                            ->send();
-                                    }
-                                })
-                        ])
-                            ->alignCenter()
-                            ->verticallyAlignCenter(),
+                        TextInput::make('password')
+                            ->label('Password')
+                            ->placeholder('********')
+                            ->required()
+                            ->password()
+                            ->revealable(),
                         FileUpload::make('avatar')
                             ->label('Passport')
                             ->image()
@@ -548,21 +444,119 @@ class Guardians extends Component implements HasForms, HasTable
                             ->directory('avatars')
                     ])
             ])
-            ->fillForm(fn (User $record) => $record->toArray())
-            ->mutateFormDataUsing(function (array $data) {
-                $data['phone'] = '+234' . $data['phone'];
+            ->model(User::class)
+            ->mutateFormDataUsing(function (array $data, string $model) {
+                $date = Carbon::now()->year;
+                $hour  = Carbon::now()->hour;
+                $second  = Carbon::now()->second;
 
+                $data['guardian_code'] = substr($date, 0, 2) . $model::query()->find(auth()->id())->school->smil_code . substr($date, -2) . $hour . $second;
+                $data['username'] = substr($date, 0, 2) .
+                    strtolower(Str::trim($data['first_name']) .
+                        substr(Str::trim($data['last_name']), 0, 1) .
+                        substr(Str::trim($data['last_name']), -1)) .
+                    substr($date, -2) . $hour . $second;
                 return $data;
             })
-            ->using(function (User $record, array $data): User {
-                return DB::transaction(function () use ($record, $data) {
-                    $record->fill($data);
-                    $record->save();
+            ->using(function (array $data, string $model): Model {
+                $user = new $model;
+                $user->school_id = $model::query()->find(auth()->id())->school->id;
+                $user->username = $data['username'];
+                $user->email = $data['email'];
+                $user->password = $data['password'];
+                $user->first_name = $data['first_name'];
+                $user->middle_name = $data['middle_name'];
+                $user->last_name = $data['last_name'];
+                $user->gender = $data['gender'];
+                $user->dob = $data['dob'];
+                $user->religion = $data['religion'];
+                $user->phone = '+234' . $data['phone'];
+                $user->address = $data['address'];
+                $user->postal_code = $data['postal_code'];
+                $user->lga_id = $data['lga_id'];
+                $user->state_id = $data['state_id'];
+                $user->country_id = 1;
+                $user->lga_origin_id = $data['lga_origin_id'];
+                $user->state_origin_id = $data['state_origin_id'];
+                $user->nationality_id = 1;
+                $user->avatar = $data['avatar'];
+                $user->save();
+                $user->roles()->attach(Role::GUARDIAN);
 
-                    $record->guardian()->getQuery()->update($data['guardian']);
+                // Guardian
+                $guardian = new Guardian;
+                $guardian->user_id = $user->id;
+                $guardian->guardian_code = $data['guardian_code'];
+                $guardian->marital_status = $data['marital_status'];
+                $guardian->occupation = $data['occupation'];
+                $guardian->save();
 
-                    return $record;
+                event(new Registered($user));
+
+                Notification::make()
+                    ->title('Congratulations!')
+                    ->body('You\ve been admitted successfully 🎉')
+                    ->success()
+                    ->sendToDatabase($user);
+
+                return $user;
+            })
+            ->successNotification(
+                Notification::make()
+                    ->title('Admission Success')
+                    ->body('Guardian has been provisioned 🎉')
+                    ->success()
+            )
+            ->successRedirectUrl(route('app.' . session('role') . '.guardians'));
+    }
+
+    public function student_guardian(): Action
+    {
+        return CreateAction::make('student_guardian')
+            ->icon('c-link')
+            ->label('Student-Guardian Link')
+            ->size(ActionSize::ExtraLarge)
+            ->modalWidth(MaxWidth::Medium)
+            ->modalHeading('Student-Guardian Linking')
+            ->modalDescription('Link a guardian to a student')
+            ->modalSubmitActionLabel('Link')
+            ->createAnother(false)
+            ->form([
+                Select::make('guardian_id')
+                    ->label('Guardian')
+                    ->options(User::query()->whereHas('roles', function (Builder $query) {
+                        $query->where('roles.id', Role::GUARDIAN);
+                    })
+                        ->pluck('last_name', 'id'))
+                    ->required()
+                    ->searchable()
+                    ->native(false),
+                Select::make('students')
+                    ->label('Students')
+                    ->multiple()
+                    ->options(User::query()->whereHas('roles', function (Builder $query) {
+                        $query->where('roles.id', Role::STUDENT);
+                    })
+                        ->pluck('first_name', 'id'))
+                    ->required()
+                    ->searchable(['first_name', 'middle_name', 'last_name'])
+                    ->native(false),
+            ])
+            ->model(User::class)
+            ->mutateFormDataUsing(function (array $data) {
+                $data['guardian_id'] = Guardian::query()->where('user_id', $data['guardian_id'])->value('id');
+                return $data;
+            })
+            ->using(function (array $data, string $model) {
+                $users = $model::query()->findMany($data['students']);
+
+                $users->each(function ($user) use ($data) {
+                    DB::transaction(function () use ($user, $data) {
+                        $user->student->guardian_id = $data['guardian_id'];
+                        $user->student->save();
+                    });
                 });
-            });
+            })
+            ->successNotificationTitle('Linkage success');
     }
 }

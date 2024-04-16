@@ -7,6 +7,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -82,6 +83,11 @@ class User extends Authenticatable implements CanResetPassword //, MustVerifyEma
     public function student(): HasOne
     {
         return $this->hasOne(Student::class);
+    }
+
+    public function students(): HasManyThrough
+    {
+        return $this->through('guardian')->has('students');
     }
 
     public function guardian(): HasOne

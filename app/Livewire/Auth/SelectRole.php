@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Auth;
 
+use App\Models\User;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
@@ -18,10 +19,11 @@ class SelectRole extends Component
 
     public function mount()
     {
-        $this->roles = auth()->user()->roles;
+        $this->roles = User::query()->find(auth()->id())->roles;
+        $this->role = $this->roles->first()->name;
     }
 
-    public function set()
+    public function done()
     {
         session(['role' => $this->role]);
 

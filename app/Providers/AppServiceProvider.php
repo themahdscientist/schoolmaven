@@ -2,12 +2,7 @@
 
 namespace App\Providers;
 
-use App\Models\User;
-use App\Observers\UserObserver;
-use Filament\Support\Colors\Color;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Filament\Support\Facades\FilamentColor;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,31 +19,38 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        User::observe(UserObserver::class);
+        \App\Models\User::observe(\App\Observers\UserObserver::class);
 
-        Gate::define('view-admin', function (User $user) {
+        \Illuminate\Support\Facades\Gate::define('view-admin', function (\App\Models\User $user) {
             return $user->roles->contains('name', 'admin') && (session('role') == 'admin');
         });
 
-        Gate::define('view-staff', function (User $user) {
+        \Illuminate\Support\Facades\Gate::define('view-staff', function (\App\Models\User $user) {
             return $user->roles->contains('name', 'staff') && (session('role') == 'staff');
         });
 
-        Gate::define('view-student', function (User $user) {
+        \Illuminate\Support\Facades\Gate::define('view-student', function (\App\Models\User $user) {
             return $user->roles->contains('name', 'student') && (session('role') == 'student');
         });
 
-        Gate::define('view-guardian', function (User $user) {
+        \Illuminate\Support\Facades\Gate::define('view-guardian', function (\App\Models\User $user) {
             return $user->roles->contains('name', 'guardian') && (session('role') == 'guardian');
         });
 
-        FilamentColor::register([
-            'danger' => Color::hex('#D81E5B'),
-            'gray' => Color::hex('#242423'),
-            'info' => Color::hex('#058ED9'),
-            'primary' => Color::hex('#4AAD52'),
-            'success' => Color::hex('#32CD32'),
-            'warning' => Color::hex('#FFD700'),
+        \Filament\Support\Facades\FilamentColor::register([
+            'danger' => \Filament\Support\Colors\Color::hex('#D81E5B'),
+            'gray' => \Filament\Support\Colors\Color::hex('#242423'),
+            'info' => \Filament\Support\Colors\Color::hex('#058ED9'),
+            'primary' => \Filament\Support\Colors\Color::hex('#4AAD52'),
+            'success' => \Filament\Support\Colors\Color::hex('#32CD32'),
+            'warning' => \Filament\Support\Colors\Color::hex('#FFD700'),
         ]);
+
+        \Filament\Tables\Columns\Column::configureUsing(
+            fn (\Filament\Tables\Columns\Column $column) => $column
+                ->searchable()
+                ->alignCenter()
+                ->verticallyAlignCenter()
+        );
     }
 }

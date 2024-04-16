@@ -27,17 +27,17 @@
 
         {{-- Header & Navigation --}}
         <section
-            class="absolute top-0 right-0 w-full h-screen lg:static flex flex-1 flex-col overflow-y-hidden overflow-x-hidden bg-secondary dark:bg-dark">
+            class="absolute top-0 right-0 w-full h-screen lg:static flex flex-1 flex-col overflow-hidden bg-secondary dark:bg-dark">
             <livewire:dashboard.header />
             <div class="scrollbar overflow-y-auto">
                 {{ $slot }}
             </div>
         </section>
     </main>
+    <livewire:database-notifications />
     @endauth
 
     <livewire:notifications />
-    <livewire:database-notifications />
 
     @livewireScriptConfig
     @filamentScripts

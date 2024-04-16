@@ -12,17 +12,12 @@ class Student extends Model
 
     protected $fillable = [
         'user_id',
-        'grade_id',
-        'section_id',
         'guardian_id',
+        'grade_id',
         'admission_number',
-        'enrollment_date',
-        'nationality',
-        'address',
-        'religion',
         'blood_group',
         'rhesus_factor',
-        'emergency_contact',
+        'emergency_phone',
         'status',
     ];
 

@@ -11,6 +11,7 @@ use App\Livewire\Admin\Students;
 use App\Livewire\Admin\Academics;
 use App\Livewire\Admin\Academics\Grades;
 use App\Livewire\Admin\Academics\Subjects;
+use App\Livewire\Admin\Admissions;
 use App\Livewire\Admin\Guardians;
 use App\Livewire\Auth\SelectRole;
 use App\Livewire\Auth\VerifyEmail;
@@ -69,6 +70,9 @@ Route::name('app')->group(function () {
                 Route::get('', Academics::class);
                 Route::get('grades', Grades::class)->name('.grades');
                 Route::get('subjects', Subjects::class)->name('.subjects');
+            });
+            Route::prefix('admissions')->name('.admissions')->group(function () {
+                Route::get('', Admissions::class);
             });
             Route::get('students', Students::class)->name('.students');
             Route::get('staff', Staff::class)->name('.staff');

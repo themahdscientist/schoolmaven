@@ -21,16 +21,25 @@
 }
 
 @layer components {
-    .scrollbar {
+    .scrollbar,
+    .fi-ta-content,
+    .fi-modal-close-overlay + div {
         scrollbar-gutter: stable;
     }
 
-    .scrollbar::-webkit-scrollbar {
+    .scrollbar::-webkit-scrollbar,
+    .fi-modal-close-overlay + div::-webkit-scrollbar {
         @apply w-2.5;
     }
 
-    .scrollbar:hover::-webkit-scrollbar-thumb {
+    .scrollbar:hover::-webkit-scrollbar-thumb,
+    .fi-ta-content:hover::-webkit-scrollbar-thumb,
+    .fi-modal-close-overlay + div::-webkit-scrollbar-thumb {
         @apply bg-primary outline-none rounded-full;
+    }
+
+    .fi-ta-content::-webkit-scrollbar {
+        @apply h-2.5;
     }
 }
 
@@ -55,6 +64,7 @@
     .fi-ta-selection-indicator,
     .fi-modal-window,
     .fi-modal-header,
+    .fi-modal-footer,
     .fi-dropdown-panel,
     .fi-pagination,
     .fi-ta-filter-indicators,
@@ -67,6 +77,14 @@
     .fi-fo-tabs,
     .isolate > div > div{
         @apply bg-light dark:!bg-body-dark text-dark dark:!text-light;
+    }
+
+    .fi-modal-header {
+        @apply rounded-t-xl;
+    }
+
+    .fi-modal-footer {
+        @apply rounded-b-xl;
     }
 
     .fi-ta-ctn,
@@ -107,6 +125,10 @@
     }
 
     .fi-fo-field-wrp-error-message {
-        @apply text-danger;
+        @apply text-danger dark:text-red-500;
+    }
+
+    .fi-dropdown-panel {
+        @apply !absolute;
     }
 }

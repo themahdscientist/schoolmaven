@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('grades', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('year_head_id')->nullable()->constrained('staff');
+            $table->foreignId('year_head_id')->nullable()->constrained('staff')->nullOnDelete();
             $table->string('name');
             $table->enum('age_range', [
                 '5-6',

@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Admin\Academics;
 
+use App\Models\Grade;
 use App\Models\Subject;
+use Filament\Forms\Components\CheckboxList;
 use Livewire\Component;
 use Filament\Tables\Table;
 use Livewire\Attributes\Title;
@@ -20,7 +22,9 @@ use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Support\Enums\ActionSize;
 use Filament\Tables\Concerns\InteractsWithTable;
+use Illuminate\Support\Facades\DB;
 
 #[Title('Subjects')]
 class Subjects extends Component implements HasForms, HasTable
@@ -31,11 +35,45 @@ class Subjects extends Component implements HasForms, HasTable
     public function table(Table $table): Table
     {
         return $table
+            ->striped()
             ->headerActions([
+                CreateAction::make('grade_subject')
+                    ->icon('c-link')
+                    ->label('Link a grade')
+                    ->modalWidth(MaxWidth::Medium)
+                    ->modalHeading('Grade Subject Linking')
+                    ->modalDescription('Link a subject to a grade')
+                    ->modalSubmitActionLabel('Link')
+                    ->createAnother(false)
+                    ->form([
+                        Select::make('grades')
+                            ->options(Grade::all()->pluck('name', 'id'))
+                            ->multiple()
+                            ->required()
+                            ->searchable()
+                            ->native(false),
+                        CheckboxList::make('subjects')
+                            ->options(Subject::all()->pluck('name', 'id'))
+                            ->required()
+                            ->columns()
+                            ->searchable()
+                            ->bulkToggleable(),
+                    ])
+                    ->model(Grade::class)
+                    ->using(function (array $data, $model) {
+                        DB::transaction(function () use ($data, $model) {
+                            $grades = $model::query()->findMany($data['grades']);
+                            $subjects = Subject::query()->findMany($data['subjects']);
+
+                            foreach ($grades as $grade) {
+                                $grade->subjects()->syncWithoutDetaching($subjects);
+                            }
+                        });
+                    })
+                    ->successNotificationTitle('Linkage success'),
                 CreateAction::make()
                     ->icon('c-folder-plus')
                     ->label('Create subject')
-                    ->outlined()
                     ->modalWidth(MaxWidth::Medium)
                     ->modalHeading('Subject registration')
                     ->modalDescription('Create a new subject')
@@ -49,8 +87,7 @@ class Subjects extends Component implements HasForms, HasTable
                                     ->maxLength(100)
                                     ->minLength(1)
                                     ->autocomplete()
-                                    ->autofocus()
-                                    ->live(true),
+                                    ->autofocus(),
                                 Select::make('type')
                                     ->placeholder('Select an option')
                                     ->options([
@@ -71,7 +108,9 @@ class Subjects extends Component implements HasForms, HasTable
                         return $data;
                     })
                     ->using(function (array $data, string $model): Model {
-                        return $model::create($data);
+                        return DB::transaction(function () use ($data, $model) {
+                            return $model::create($data);
+                        });
                     })
                     ->successNotificationTitle('Subject created')
             ])
@@ -87,8 +126,7 @@ class Subjects extends Component implements HasForms, HasTable
                                         ->maxLength(100)
                                         ->minLength(1)
                                         ->autocomplete()
-                                        ->autofocus()
-                                        ->live(true),
+                                        ->autofocus(),
                                     Select::make('type')
                                         ->placeholder('Select an option')
                                         ->options([
@@ -110,23 +148,60 @@ class Subjects extends Component implements HasForms, HasTable
             ])
             ->query(Subject::query())
             ->columns([
-                TextColumn::make('name')
-                    ->searchable()
-                    ->alignCenter(),
+                TextColumn::make('name'),
                 TextColumn::make('description')
-                    ->placeholder('no description')
-                    ->searchable()
-                    ->alignCenter(),
-                TextColumn::make('type')
-                    ->searchable()
-                    ->alignCenter(),
+                    ->placeholder('no description'),
+                TextColumn::make('type'),
                 TextColumn::make('user.username')
-                    ->label('Created by')
-                    ->searchable()
-                    ->alignCenter(),
+                    ->label('Created by'),
             ])
             ->emptyStateIcon('c-rectangle-stack')
             ->emptyStateHeading('No subjects')
-            ->emptyStateDescription('Create a subject to get started');
+            ->emptyStateDescription('Create a subject to get started')
+            ->emptyStateActions([
+                CreateAction::make()
+                    ->icon('c-folder-plus')
+                    ->label('Create subject')
+                    ->size(ActionSize::Large)
+                    ->modalWidth(MaxWidth::Medium)
+                    ->modalHeading('Subject registration')
+                    ->modalDescription('Create a new subject')
+                    ->createAnother(false)
+                    ->form([
+                        Grid::make()
+                            ->schema([
+                                TextInput::make('name')
+                                    ->placeholder('Mathematics')
+                                    ->required()
+                                    ->maxLength(100)
+                                    ->minLength(1)
+                                    ->autocomplete()
+                                    ->autofocus(),
+                                Select::make('type')
+                                    ->placeholder('Select an option')
+                                    ->options([
+                                        'theory' => 'Theory',
+                                        'practical' => 'Practical',
+                                        'combined' => 'Combined',
+                                    ])
+                                    ->required()
+                                    ->native(false),
+                            ]),
+                        Textarea::make('description')
+                            ->placeholder('Type in here...')
+                            ->autosize(),
+                    ])
+                    ->model(Subject::class)
+                    ->mutateFormDataUsing(function (array $data) {
+                        $data['user_id'] = auth()->id();
+                        return $data;
+                    })
+                    ->using(function (array $data, string $model): Model {
+                        return DB::transaction(function () use ($data, $model) {
+                            return $model::create($data);
+                        });
+                    })
+                    ->successNotificationTitle('Subject created')
+            ]);
     }
 }

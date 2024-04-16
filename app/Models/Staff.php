@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Staff extends Model
 {
@@ -19,5 +20,15 @@ class Staff extends Model
         return [
             'qualifications' => 'array',
         ];
+    }
+
+    public function teachingStaff(): HasOne
+    {
+        return $this->hasOne(TeachingStaff::class);
+    }
+
+    public function nonTeachingStaff(): HasOne
+    {
+        return $this->hasOne(NonTeachingStaff::class);
     }
 }

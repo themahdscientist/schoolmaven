@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('guardian_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->foreignId('grade_id')->constrained();
+            $table->foreignId('guardian_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('grade_id')->constrained()->nullOnDelete();
             $table->string('admission_number')->unique();
             $table->enum('blood_group', ['A', 'B', 'AB', 'O']);
             $table->enum('rhesus_factor', ['Rh+', 'Rh-']);

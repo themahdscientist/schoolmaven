@@ -1,4 +1,3 @@
-{{-- @dd($user->school) --}}
 <aside :class="sidebarToggle ? 'translate-x-0' : '-translate-x-full'"
     class="absolute left-0 top-0 z-20 flex h-screen w-72 flex-col overflow-y-hidden bg-dark duration-300 ease-linear -translate-x-full dark:bg-neutral-900 lg:static lg:translate-x-0"
     @click.outside="sidebarToggle = false">
@@ -62,6 +61,15 @@
                         </x-filament::dropdown>
                     </li>
                     {{-- Academics --}}
+                    {{-- Admissions --}}
+                    <li>
+                        <a class="{{ request()->routeIs('app.' . session('role') . '.admissions') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark flex-1"
+                            href="{{ route('app.' . session('role') . '.admissions') }}" wire:navigate>
+                            @svg('c-clipboard-document-list', 'w-6 h-6')
+                            <span>Admissions</span>
+                        </a>
+                    </li>
+                    {{-- Admissions --}}
                     {{-- Finances --}}
                     <li>
                         <a class="{{ request()->routeIs('app.' . session('role') . '.finances') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"

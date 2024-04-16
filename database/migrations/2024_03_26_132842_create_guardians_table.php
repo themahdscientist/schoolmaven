@@ -15,11 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('guardian_code')->unique();
-            $table->foreignId('nationality')->constrained('countries');
-            $table->foreignId('state_origin')->constrained('states');
-            $table->foreignId('lga_origin')->constrained('lgas');
-            $table->enum('marital_status', ['single', 'married', 'other'])->default('single');
-            $table->enum('relationship_to_student', ['father', 'mother', 'guardian']);
+            $table->enum('marital_status', ['single', 'married', 'divorced', 'other'])->default('single');
             $table->string('occupation')->nullable();
             $table->timestamps();
         });

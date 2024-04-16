@@ -2,35 +2,36 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\Country;
 use App\Models\Lga;
-use App\Models\State;
 use App\Models\User;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\Actions;
-use Filament\Forms\Components\CheckboxList;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\KeyValue;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Split;
-use Filament\Forms\Components\Tabs;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
+use App\Models\State;
+use App\Models\Country;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Filament\Notifications\Notification;
+use Livewire\Component;
+use Filament\Forms\Form;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Title;
+use Illuminate\Support\Collection;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Tabs;
+use Filament\Forms\Components\Split;
 use Filament\Support\Enums\IconSize;
 use Filament\Support\Enums\MaxWidth;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
-use Livewire\Attributes\Title;
-use Livewire\Component;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Actions;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Concerns\InteractsWithForms;
 
 #[Title('Profile')]
 class Profile extends Component implements HasForms
@@ -38,7 +39,6 @@ class Profile extends Component implements HasForms
     use InteractsWithForms;
 
     public ?array $data = [];
-
     public User $record;
 
     public function mount(): void
@@ -102,28 +102,39 @@ class Profile extends Component implements HasForms
                                                 ])
                                                 ->native(false),
                                             TextInput::make('phone')
+                                                ->formatStateUsing(fn ($state) => Str::substr($state, 4))
                                                 ->tel()
                                                 ->prefixIcon('c-phone')
+                                                ->prefix('+234')
+                                                ->placeholder('7059753934')
+                                                ->autocomplete()
                                                 ->required(),
                                             DatePicker::make('dob')
                                                 ->label('Date of Birth')
                                                 ->native(false)
                                                 ->required(),
-                                            Select::make('country')
+                                            Select::make('country_id')
                                                 ->label('Country of Residence')
+                                                ->options(Country::query()->where('id', '1')->pluck('name', 'id'))
+                                                ->default(Country::query()->find(1)->value('id'))
+                                                ->disabled()
                                                 ->required()
-                                                ->relationship('country', 'name')
                                                 ->native(false),
-                                            Select::make('state_residency')
+                                            Select::make('state_id')
                                                 ->label('State of Residence')
+                                                ->options(fn (Get $get): Collection => State::query()->where('country_id', (int) $get('country_id'))->pluck('name', 'id'))
+                                                ->searchable()
                                                 ->required()
-                                                ->relationship('state', 'name')
-                                                ->native(false),
-                                            Select::make('lga_residency')
+                                                ->native(false)
+                                                ->live(true)
+                                                ->afterStateUpdated(fn (Set $set) => $set('lga_id', null)),
+                                            Select::make('lga_id')
                                                 ->label('City of Residence')
+                                                ->options(fn (Get $get) => Lga::query()->where('state_id', (int) $get('state_id'))->pluck('name', 'id'))
+                                                ->searchable()
                                                 ->required()
-                                                ->relationship('lga', 'name')
-                                                ->native(false),
+                                                ->native(false)
+                                                ->live(true),
                                         ]),
                                 ]),
                             Tabs\Tab::make('School Information')
@@ -147,6 +158,10 @@ class Profile extends Component implements HasForms
                                                                 ->maxLength(255),
                                                             TextInput::make('alias')
                                                                 ->maxLength(255),
+                                                            TextInput::make('smil_code')
+                                                                ->label('SMIL Code')
+                                                                ->readOnly()
+                                                                ->required(),
                                                             Select::make('accreditation')
                                                                 ->required()
                                                                 ->native(false)
@@ -172,8 +187,7 @@ class Profile extends Component implements HasForms
                                                                 ->editableKeys(false)
                                                                 ->valueLabel('Value')
                                                                 ->editableValues(false)
-                                                                ->reorderable()
-                                                                ->columnSpanFull(),
+                                                                ->reorderable(),
                                                             KeyValue::make('type')
                                                                 ->label('Institution Type')
                                                                 ->addable(false)
@@ -182,10 +196,15 @@ class Profile extends Component implements HasForms
                                                                 ->editableKeys(false)
                                                                 ->valueLabel('Value')
                                                                 ->editableValues(false)
-                                                                ->reorderable()
-                                                                ->columnSpanFull(),
+                                                                ->reorderable(),
+                                                            Textarea::make('mission')
+                                                                ->autosize()
+                                                                ->minLength(10),
+                                                            Textarea::make('vision')
+                                                                ->autosize()
+                                                                ->minLength(10),
                                                         ])
-                                                        ->columns(3),
+                                                        ->columns(),
                                                     Section::make()
                                                         ->description('Additional Info')
                                                         ->schema([
@@ -194,28 +213,25 @@ class Profile extends Component implements HasForms
                                                                     TextInput::make('address')
                                                                         ->required()
                                                                         ->maxLength(255),
-                                                                    Select::make('school_country')
+                                                                    Select::make('country_id')
                                                                         ->label('Country')
-                                                                        ->relationship('country', 'name')
-                                                                        ->options(null)
+                                                                        ->options(Country::query()->where('id', '1')->pluck('name', 'id'))
                                                                         ->default(Country::query()->find(1)->value('id'))
                                                                         ->disabled()
                                                                         ->native(false),
-Select::make('school_state')
-->label('State')
-->relationship('state', 'name')
-->options(fn (Get $get): Collection => State::query()->where('country_id', (int) $get('school_country'))->pluck('name', 'id'))
-->searchable()
-->native(false)
-->live(true)
-->afterStateUpdated(fn (Set $set) => $set('school_lga', null)),
-Select::make('school_lga')
-->label('LGA')
-->relationship('lga', 'name')
-->options(fn (Get $get): Collection => Lga::query()->where('state_id', (int) $get('school_state'))->pluck('name', 'id'))
-->searchable()
-->native(false)
-->live(true),
+                                                                    Select::make('state_id')
+                                                                        ->label('State')
+                                                                        ->options(fn (Get $get): Collection => State::query()->where('country_id', (int) $get('country_id'))->pluck('name', 'id'))
+                                                                        ->searchable()
+                                                                        ->native(false)
+                                                                        ->live(true)
+                                                                        ->afterStateUpdated(fn (Set $set) => $set('lga_id', null)),
+                                                                    Select::make('lga_id')
+                                                                        ->label('LGA')
+                                                                        ->options(fn (Get $get): Collection => Lga::query()->where('state_id', (int) $get('state_id'))->pluck('name', 'id'))
+                                                                        ->searchable()
+                                                                        ->native(false)
+                                                                        ->live(true),
                                                                 ]),
                                                             Grid::make()
                                                                 ->schema([
@@ -225,19 +241,25 @@ Select::make('school_lga')
                                                                         ->maxSize(1024)
                                                                         ->disk('public')
                                                                         ->directory('logos')
-                                                                        ->fetchFileInformation(false),
-                                                                    TextInput::make('smil_code')
-                                                                        ->label('SMIL Code')
-                                                                        ->readOnly()
-                                                                        ->required(),
+                                                                        ->fetchFileInformation(false)
+                                                                        ->columnSpanFull(),
                                                                 ]),
                                                         ])
-                                                        ->collapsible(),
+                                                        ->collapsible()
+                                                        ->grow(false),
                                                 ])
                                                     ->from('md')
                                             ])
                                             ->fillForm(fn (User $record) => $record->load('school')->school->load(['country', 'state', 'lga'])->toArray())
-                                            ->afterFormValidated(fn (array $data, User $record) => dd($data)),
+                                            ->afterFormValidated(function (User $record, array $data): User {
+                                                $record->school()->getQuery()->update($data);
+
+                                                Notification::make()
+                                                    ->title('Saved')
+                                                    ->success()
+                                                    ->send();
+                                                return $record;
+                                            }),
                                     ])
                                         ->fullWidth(),
                                 ]),
@@ -254,10 +276,27 @@ Select::make('school_lga')
                                             ->modalDescription('Manage your system roles')
                                             ->modalSubmitActionLabel('Save')
                                             ->form([
+                                                TextInput::make('administrator_code')
+                                                    ->label('Admin Code')
+                                                    ->disabled(),
+                                                Select::make('position')
+                                                    ->options(\App\AdminPosition::class)
+                                                    ->required()
+                                                    ->native(false),
                                                 CheckboxList::make('roles')
                                                     ->relationship('roles', 'description')
                                                     ->required(),
                                             ])
+                                            ->fillForm(fn (User $record) => $record->load('administrator')->administrator->toArray())
+                                            ->afterFormValidated(function (User $record, array $data): User {
+                                                $record->administrator()->getQuery()->update($data);
+
+                                                Notification::make()
+                                                    ->title('Saved')
+                                                    ->success()
+                                                    ->send();
+                                                return $record;
+                                            }),
                                     ])
                                         ->fullWidth(),
                                 ]),
@@ -276,27 +315,24 @@ Select::make('school_lga')
                                 ->fetchFileInformation(false),
                             Grid::make()
                                 ->schema([
-                                    Select::make('nationality')
+                                    Select::make('nationality_id')
                                         ->label('Nationality')
-                                        ->relationship('nationality', 'name')
                                         ->options(Country::query()->where('id', '1')->pluck('name', 'id'))
                                         ->default(Country::query()->find(1)->value('id'))
                                         ->disabled()
                                         ->required()
                                         ->native(false),
-                                    Select::make('state_origin')
+                                    Select::make('state_origin_id')
                                         ->label('State of Origin')
-                                        ->relationship('stateOrigin', 'name')
-                                        ->options(fn (Get $get): Collection => State::query()->where('country_id', (int) $get('nationality'))->pluck('name', 'id'))
+                                        ->options(fn (Get $get): Collection => State::query()->where('country_id', (int) $get('nationality_id'))->pluck('name', 'id'))
                                         ->searchable()
                                         ->required()
                                         ->native(false)
                                         ->live(true)
-                                        ->afterStateUpdated(fn (Set $set) => $set('lga_origin', null)),
-                                    Select::make('lga_origin')
+                                        ->afterStateUpdated(fn (Set $set) => $set('lga_origin_id', null)),
+                                    Select::make('lga_origin_id')
                                         ->label('LGA')
-                                        ->relationship('lgaOrigin', 'name')
-                                        ->options(fn (Get $get) => Lga::query()->where('state_id', (int) $get('state_origin'))->pluck('name', 'id'))
+                                        ->options(fn (Get $get) => Lga::query()->where('state_id', (int) $get('state_origin_id'))->pluck('name', 'id'))
                                         ->searchable()
                                         ->required()
                                         ->native(false)
@@ -374,10 +410,12 @@ Select::make('school_lga')
     {
         $data = $this->form->getState();
 
-        $this->record->update($data);
+        $this->record->fill($data);
+        $this->record->save();
+
 
         Notification::make()
-            ->title('Saved Successfully')
+            ->title('Saved')
             ->success()
             ->send();
     }
