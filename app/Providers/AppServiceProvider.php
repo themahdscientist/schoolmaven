@@ -20,6 +20,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \App\Models\User::observe(\App\Observers\UserObserver::class);
+        \App\Models\School::observe(\App\Observers\SchoolObserver::class);
+        \App\Models\Staff::observe(\App\Observers\StaffObserver::class);
 
         \Illuminate\Support\Facades\Gate::define('view-admin', function (\App\Models\User $user) {
             return $user->roles->contains('name', 'admin') && (session('role') == 'admin');

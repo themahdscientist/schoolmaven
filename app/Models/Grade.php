@@ -45,7 +45,7 @@ class Grade extends Model
 
     public function staff(): BelongsTo
     {
-        return $this->belongsTo(Staff::class);
+        return $this->belongsTo(Staff::class, 'year_head_id');
     }
 
     public function subjects(): BelongsToMany

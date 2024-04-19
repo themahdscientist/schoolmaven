@@ -153,7 +153,7 @@ class RegisterForm extends Form
         return substr($date, 0, 2) .
             strtolower(Str::trim($this->u_fname) .
                 substr(Str::trim($this->u_lname), 0, 1) .
-                substr(Str::trim($this->u_lname), -1, 1)) .
+                substr(Str::trim($this->u_lname), -1)) .
             substr($date, -2) . $hour . $second;
     }
 

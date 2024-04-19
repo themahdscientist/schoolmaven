@@ -38,7 +38,6 @@ use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Wizard\Step;
 use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Support\Enums\ActionSize;
 use Filament\Support\Enums\IconSize;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\BulkAction;
@@ -140,31 +139,31 @@ class Students extends Component implements HasForms, HasTable
                             ->form([
                                 Grid::make(3)
                                     ->schema([
-                                        TextInput::make('student.guardian.user.first_name')
-                                            ->label('First Name'),
-                                        TextInput::make('student.guardian.user.middle_name')
-                                            ->label('Middle Name'),
-                                        TextInput::make('student.guardian.user.last_name')
-                                            ->label('Last Name'),
-                                        TextInput::make('student.guardian.user.username')
-                                            ->label('Username'),
-                                        TextInput::make('student.guardian.user.gender')
-                                            ->label('Gender'),
-                                        DatePicker::make('student.guardian.user.dob')
-                                            ->label('Date of Birth'),
                                         FileUpload::make('student.guardian.user.avatar')
                                             ->deletable(false),
                                         Grid::make()
                                             ->schema([
+                                                TextInput::make('student.guardian.user.first_name')
+                                                    ->label('First Name'),
+                                                TextInput::make('student.guardian.user.middle_name')
+                                                    ->label('Middle Name'),
+                                                TextInput::make('student.guardian.user.last_name')
+                                                    ->label('Last Name'),
+                                                TextInput::make('student.guardian.user.gender')
+                                                    ->label('Gender'),
+                                                DatePicker::make('student.guardian.user.dob')
+                                                    ->label('Date of Birth'),
                                                 TextInput::make('student.guardian.marital_status')
                                                     ->label('Marital Status'),
-                                                TextInput::make('student.guardian.occupation'),
-                                                TextInput::make('student.guardian.guardian_code')
-                                                    ->label('Guardian Code'),
                                                 TextInput::make('student.guardian.user.phone')
                                                     ->formatStateUsing(fn ($state) => Str::substr($state, 4))
                                                     ->prefixIcon('c-phone')
                                                     ->prefix('+234'),
+                                                TextInput::make('student.guardian.occupation'),
+                                                TextInput::make('student.guardian.guardian_code')
+                                                    ->label('Guardian Code'),
+                                                TextInput::make('student.guardian.user.username')
+                                                    ->label('Username'),
                                             ])
                                             ->columnSpan(2),
                                     ]),
@@ -324,6 +323,7 @@ class Students extends Component implements HasForms, HasTable
                             ->native(false)
                             ->live(true),
                         TextInput::make('postal_code')
+                            ->numeric()
                             ->label('Postal Code')
                             ->placeholder('460242')
                             ->autocomplete()
@@ -337,7 +337,7 @@ class Students extends Component implements HasForms, HasTable
                             ->placeholder('7059753934')
                             ->autocomplete()
                             ->required(),
-                        TextInput::make('ecn')
+                        TextInput::make('emergency_phone')
                             ->label('Emergency Contact Number')
                             ->tel()
                             ->prefixIcon('c-phone')
@@ -421,7 +421,7 @@ class Students extends Component implements HasForms, HasTable
                 $data['username'] = substr($date, 0, 2) .
                     strtolower(Str::trim($data['first_name']) .
                         substr(Str::trim($data['last_name']), 0, 1) .
-                        substr(Str::trim($data['last_name']), -1, 1)) .
+                        substr(Str::trim($data['last_name']), -1)) .
                     substr($date, -2) . $hour . $second;
                 $data['guardian_id'] = Guardian::query()->where('user_id', $data['guardian_id'])->value('id');
                 return $data;
@@ -460,7 +460,7 @@ class Students extends Component implements HasForms, HasTable
                     $student->admission_number = $data['admission_number'];
                     $student->blood_group = $data['blood_group'];
                     $student->rhesus_factor = $data['rhesus_factor'];
-                    $student->emergency_phone = '+234' . $data['ecn'];
+                    $student->emergency_phone = '+234' . $data['emergency_phone'];
                     $student->save();
 
                     event(new Registered($user));
@@ -551,7 +551,6 @@ class Students extends Component implements HasForms, HasTable
                             ->native(false),
                         Select::make('nationality_id')
                             ->label('Nationality')
-                            ->relationship('nationality', 'name')
                             ->options(Country::query()->where('id', '1')->pluck('name', 'id'))
                             ->default(Country::query()->find(1)->value('id'))
                             ->disabled()
@@ -559,7 +558,6 @@ class Students extends Component implements HasForms, HasTable
                             ->native(false),
                         Select::make('state_origin_id')
                             ->label('State of Origin')
-                            ->relationship('stateOrigin', 'name')
                             ->options(fn (Get $get): Collection => State::query()->where('country_id', (int) $get('nationality_id'))->pluck('name', 'id'))
                             ->searchable()
                             ->required()
@@ -568,7 +566,6 @@ class Students extends Component implements HasForms, HasTable
                             ->afterStateUpdated(fn (Set $set) => $set('lga_origin_id', null)),
                         Select::make('lga_origin_id')
                             ->label('LGA')
-                            ->relationship('lgaOrigin', 'name')
                             ->options(fn (Get $get) => Lga::query()->where('state_id', (int) $get('state_origin_id'))->pluck('name', 'id'))
                             ->searchable()
                             ->required()
@@ -587,7 +584,6 @@ class Students extends Component implements HasForms, HasTable
                             ->maxLength(255),
                         Select::make('country_id')
                             ->label('Country of Residence')
-                            ->relationship('country', 'name')
                             ->options(Country::query()->where('id', '1')->pluck('name', 'id'))
                             ->default(Country::query()->find(1)->value('id'))
                             ->disabled()
@@ -595,7 +591,6 @@ class Students extends Component implements HasForms, HasTable
                             ->native(false),
                         Select::make('state_id')
                             ->label('State of Residence')
-                            ->relationship('state', 'name')
                             ->options(fn (Get $get): Collection => State::query()->where('country_id', (int) $get('country_id'))->pluck('name', 'id'))
                             ->searchable()
                             ->required()
@@ -604,13 +599,13 @@ class Students extends Component implements HasForms, HasTable
                             ->afterStateUpdated(fn (Set $set) => $set('lga_id', null)),
                         Select::make('lga_id')
                             ->label('City of Residence')
-                            ->relationship('lga', 'name')
                             ->options(fn (Get $get) => Lga::query()->where('state_id', (int) $get('state_id'))->pluck('name', 'id'))
                             ->searchable()
                             ->required()
                             ->native(false)
                             ->live(true),
                         TextInput::make('postal_code')
+                            ->numeric()
                             ->label('Postal Code')
                             ->placeholder('460242')
                             ->autocomplete()
@@ -634,9 +629,8 @@ class Students extends Component implements HasForms, HasTable
                             ->placeholder('7059753934')
                             ->autocomplete()
                             ->required(),
-                        Select::make('student.guardian_id')
+                        Select::make('student.guardian.user.id')
                             ->label('Guardian (Parent)')
-                            ->relationship('student.guardian.user', 'last_name')
                             ->options(User::query()->whereHas('roles', function (Builder $query) {
                                 $query->where('roles.id', Role::GUARDIAN);
                             })
@@ -673,6 +667,17 @@ class Students extends Component implements HasForms, HasTable
                             ->searchable()
                             ->required()
                             ->native(false),
+                        Select::make('student.status')
+                            ->options(\App\StudentStatus::class)
+                            ->required()
+                            ->native(false),
+                        FileUpload::make('avatar')
+                            ->label('Passport')
+                            ->image()
+                            ->imageCropAspectRatio('1:1')
+                            ->maxSize(1024)
+                            ->disk('public')
+                            ->directory('avatars'),
                         Actions::make([
                             Actions\Action::make('Change Password')
                                 ->icon('c-lock-closed')
@@ -723,23 +728,14 @@ class Students extends Component implements HasForms, HasTable
                         ])
                             ->alignCenter()
                             ->verticallyAlignCenter(),
-                        FileUpload::make('avatar')
-                            ->label('Passport')
-                            ->image()
-                            ->imageCropAspectRatio('1:1')
-                            ->maxSize(1024)
-                            ->disk('public')
-                            ->directory('avatars'),
-                        Select::make('student.status')
-                            ->options(\App\StudentStatus::class)
-                            ->required()
-                            ->native(false),
                     ])
             ])
             ->fillForm(fn (User $record) => $record->toArray())
             ->mutateFormDataUsing(function (array $data) {
                 $data['student']['emergency_phone'] = '+234' . $data['student']['emergency_phone'];
                 $data['phone'] = '+234' . $data['phone'];
+                $data['student']['guardian_id'] = Guardian::query()->where('user_id', $data['student']['guardian']['user']['id'])->value('id');
+                unset($data['student']['guardian']);
 
                 return $data;
             })
@@ -748,7 +744,8 @@ class Students extends Component implements HasForms, HasTable
                     $record->fill($data);
                     $record->save();
 
-                    $record->student()->getQuery()->update($data['student']);
+                    $record->student->fill($data['student']);
+                    $record->student->save();
 
                     return $record;
                 });

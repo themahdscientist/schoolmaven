@@ -29,7 +29,7 @@
         <section
             class="absolute top-0 right-0 w-full h-screen lg:static flex flex-1 flex-col overflow-hidden bg-secondary dark:bg-dark">
             <livewire:dashboard.header />
-            <div class="scrollbar overflow-y-auto">
+            <div class="scrollbar overflow-y-auto h-full">
                 {{ $slot }}
             </div>
         </section>

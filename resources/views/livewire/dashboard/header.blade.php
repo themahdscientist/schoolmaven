@@ -13,6 +13,7 @@
                     :circular="false" />
             </a>
         </div>
+        @can('view-admin')
         <div class="hidden md:block">
             <form action="">
                 <div class="relative flex items-center justify-center">
@@ -23,6 +24,7 @@
                 </div>
             </form>
         </div>
+        @endcan
         {{-- Dark Mode Toggler --}}
         <ul class="flex items-center">
             <li>
@@ -32,9 +34,10 @@
         {{-- Dark Mode Toggler --}}
 
         {{-- Notifications --}}
-        <button x-data="{}" x-on:click="$dispatch('open-modal', { id: 'database-notifications' })" type="button">
-            Notifications
-        </button>
+        <x-filament::icon-button icon="c-bell" color="gray" tooltip="Notifications" x-data="{}"
+            x-on:click="$dispatch('open-modal', { id: 'database-notifications' })">
+            <x-slot name="badge">10</x-slot>
+        </x-filament::icon-button>
         {{-- Notifications --}}
 
         {{-- User Area --}}

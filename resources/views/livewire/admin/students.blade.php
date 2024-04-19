@@ -1,4 +1,4 @@
-<section class="p-4 md:p-8 h-full">
+<section class="p-4 md:p-8">
     <x-filament::breadcrumbs :breadcrumbs="[
             route('app.'.session('role').'.dashboard') => 'Home',
             route('app.'.session('role').'.students') => 'Students',

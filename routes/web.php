@@ -21,7 +21,11 @@ use App\Livewire\Auth\ForgotPassword;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Guardian\Dashboard as GuardianDashboard;
+use App\Livewire\Guardian\Profile as GuardianProfile;
+use App\Livewire\Guardian\Wards;
 use App\Livewire\Staff\Dashboard as StaffDashboard;
+use App\Livewire\Staff\Profile as StaffProfile;
+use App\Livewire\Student\Profile as StudentProfile;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 // Main Domain
@@ -83,12 +87,16 @@ Route::name('app')->group(function () {
         });
         Route::middleware('role:student')->prefix('student')->name('.student')->group(function () {
             Route::get('dashboard', StudentDashboard::class)->name('.dashboard');
+            Route::get('profile', StudentProfile::class)->name('.profile');
         });
         Route::middleware('role:staff')->prefix('staff')->name('.staff')->group(function () {
             Route::get('dashboard', StaffDashboard::class)->name('.dashboard');
+            Route::get('profile', StaffProfile::class)->name('.profile');
         });
         Route::middleware('role:guardian')->prefix('guardian')->name('.guardian')->group(function () {
             Route::get('dashboard', GuardianDashboard::class)->name('.dashboard');
+            Route::get('wards', Wards::class)->name('.wards');
+            Route::get('profile', GuardianProfile::class)->name('.profile');
         });
     });
 });

@@ -18,7 +18,6 @@
     <div class="scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
         {{-- Sidebar Menu --}}
         <nav class="mt-4 p-4 lg:mt-8">
-            @can('view-admin')
             {{-- Essentials  --}}
             <div>
                 <h3 class="mb-2 ml-4 text-sm font-medium text-neutral-500">ESSENTIALS</h3>
@@ -32,6 +31,7 @@
                         </a>
                     </li>
                     {{-- Dashboard --}}
+                    @can('view-admin')
                     {{-- Academics --}}
                     <li class="flex flex-row-reverse items-center">
                         <a class="{{ request()->routeIs('app.' . session('role') . '.academics') || request()->segment(2) == 'academics'  ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark flex-1"
@@ -116,13 +116,22 @@
                 </ul>
             </div>
             @endcan
+            @can('view-guardian')
+            {{-- Wards --}}
+            <li>
+                <a class="{{ request()->routeIs('app.' . session('role') . '.wards') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"
+                    href="{{ route('app.' . session('role') . '.wards') }}" wire:navigate>
+                    @svg('c-users', 'w-6 h-6')
+                    <span>Wards</span>
+                </a>
+            </li>
+            {{-- Wards --}}
+            @endcan
 
             {{-- Account --}}
             <div>
                 <h3 class="mb-2 ml-4 text-sm font-medium text-neutral-500">ACCOUNT</h3>
                 <ul class="flex flex-col gap-1.5">
-                    {{-- Come back here and make changes to the student profile so you can uncomment this --}}
-                    @can('view-admin')
                     {{-- Profile --}}
                     <li>
                         <a class="{{ request()->routeIs('app.' . session('role') . '.profile') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"
@@ -133,6 +142,8 @@
                     </li>
                     {{-- Profile --}}
 
+                    {{-- Come back here and make changes to the student profile so you can uncomment this --}}
+                    @can('view-admin')
                     {{-- Settings --}}
                     <li>
                         <a class="{{ request()->routeIs('app.' . session('role') . '.settings') ? 'bg-primary' : 'hover:bg-primary' }} relative flex items-center gap-2.5 rounded px-4 py-2 font-medium text-secondary duration-300 ease-in-out dark:hover:bg-body-dark"

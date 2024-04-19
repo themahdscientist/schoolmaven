@@ -44,7 +44,7 @@ class Profile extends Component implements HasForms
     public function mount(): void
     {
         $this->record = User::query()->find(auth()->id());
-        $this->form->fill($this->record->attributesToArray());
+        $this->form->fill($this->record->toArray());
     }
 
     public function form(Form $form): Form
@@ -252,7 +252,8 @@ class Profile extends Component implements HasForms
                                             ])
                                             ->fillForm(fn (User $record) => $record->load('school')->school->load(['country', 'state', 'lga'])->toArray())
                                             ->afterFormValidated(function (User $record, array $data): User {
-                                                $record->school()->getQuery()->update($data);
+                                                $record->school->fill($data);
+                                                $record->school->save();
 
                                                 Notification::make()
                                                     ->title('Saved')
@@ -289,7 +290,8 @@ class Profile extends Component implements HasForms
                                             ])
                                             ->fillForm(fn (User $record) => $record->load('administrator')->administrator->toArray())
                                             ->afterFormValidated(function (User $record, array $data): User {
-                                                $record->administrator()->getQuery()->update($data);
+                                                $record->administrator->fill($data);
+                                                $record->administrator->save();
 
                                                 Notification::make()
                                                     ->title('Saved')
@@ -338,8 +340,10 @@ class Profile extends Component implements HasForms
                                         ->native(false)
                                         ->live(true),
                                     TextInput::make('postal_code')
-                                        ->required()
-                                        ->maxLength(10),
+                                        ->numeric()
+                                        ->label('Postal Code')
+                                        ->placeholder('460242')
+                                        ->autocomplete(),
                                 ]),
                             Actions::make([
                                 Actions\Action::make('Change Password')
@@ -409,6 +413,7 @@ class Profile extends Component implements HasForms
     public function save(): void
     {
         $data = $this->form->getState();
+        $data['phone'] = '+234' . $data['phone'];
 
         $this->record->fill($data);
         $this->record->save();

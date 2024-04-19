@@ -12,6 +12,7 @@ use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Livewire\Component;
 use App\Models\Guardian;
+use App\Models\Student;
 use Filament\Forms\Components\Actions;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
@@ -20,7 +21,6 @@ use Illuminate\Support\Collection;
 use Filament\Support\Enums\MaxWidth;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Support\Enums\ActionSize;
 use Illuminate\Auth\Events\Registered;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -30,7 +30,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Section;
 use Filament\Tables\Actions\CreateAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Wizard\Step;
@@ -40,10 +42,12 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Enums\ActionsPosition;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\HtmlString;
 
 #[Title('Guardians')]
 class Guardians extends Component implements HasForms, HasTable
@@ -59,10 +63,13 @@ class Guardians extends Component implements HasForms, HasTable
             ->striped()
             ->headerActions([$this->guardianCreateAction()])
             ->actions(
-                ActionGroup::make([
-                    $this->guardianEditAction(),
-                    DeleteAction::make(),
-                ]),
+                [
+                    ActionGroup::make([
+                        $this->guardianEditAction(),
+                        DeleteAction::make(),
+                    ]),
+                    $this->wardsViewAction(),
+                ],
                 ActionsPosition::BeforeCells
             )
             ->query(User::query()->whereHas('roles', function (Builder $query) {
@@ -206,6 +213,7 @@ class Guardians extends Component implements HasForms, HasTable
                             ->required()
                             ->native(false),
                         TextInput::make('occupation')
+                            ->placeholder('Software Developer')
                             ->required(),
                     ]),
                 Step::make('Contact & Account Info')
@@ -244,6 +252,7 @@ class Guardians extends Component implements HasForms, HasTable
                             ->native(false)
                             ->live(true),
                         TextInput::make('postal_code')
+                            ->numeric()
                             ->label('Postal Code')
                             ->placeholder('460242')
                             ->autocomplete()
@@ -264,7 +273,7 @@ class Guardians extends Component implements HasForms, HasTable
                             ->password()
                             ->revealable(),
                         FileUpload::make('avatar')
-                            ->label('Passport')
+                            ->label('Profile Picture')
                             ->image()
                             ->imageCropAspectRatio('1:1')
                             ->maxSize(1024)
@@ -278,7 +287,9 @@ class Guardians extends Component implements HasForms, HasTable
                 $hour  = Carbon::now()->hour;
                 $second  = Carbon::now()->second;
 
-                $data['guardian_code'] = substr($date, 0, 2) . $model::query()->find(auth()->id())->school->smil_code . substr($date, -2) . $hour . $second;
+                $data['guardian_code'] = substr($date, 0, 2) .
+                    $model::query()->find(auth()->id())->school->smil_code .
+                    substr($date, -2) . $hour . $second;
                 $data['username'] = substr($date, 0, 2) .
                     strtolower(Str::trim($data['first_name']) .
                         substr(Str::trim($data['last_name']), 0, 1) .
@@ -437,6 +448,7 @@ class Guardians extends Component implements HasForms, HasTable
                             ->required()
                             ->native(false),
                         TextInput::make('guardian.occupation')
+                            ->placeholder('Software Developer')
                             ->required(),
                     ]),
                 Step::make('Contact & Account Info')
@@ -475,6 +487,7 @@ class Guardians extends Component implements HasForms, HasTable
                             ->native(false)
                             ->live(true),
                         TextInput::make('postal_code')
+                            ->numeric()
                             ->label('Postal Code')
                             ->placeholder('460242')
                             ->autocomplete()
@@ -540,7 +553,7 @@ class Guardians extends Component implements HasForms, HasTable
                             ->alignCenter()
                             ->verticallyAlignCenter(),
                         FileUpload::make('avatar')
-                            ->label('Passport')
+                            ->label('Profile Picture')
                             ->image()
                             ->imageCropAspectRatio('1:1')
                             ->maxSize(1024)
@@ -559,10 +572,56 @@ class Guardians extends Component implements HasForms, HasTable
                     $record->fill($data);
                     $record->save();
 
-                    $record->guardian()->getQuery()->update($data['guardian']);
+                    $record->guardian->fill($data['guardian']);
+                    $record->guardian->save();
 
                     return $record;
                 });
+            });
+    }
+
+    public function wardsViewAction(): Action
+    {
+        return ViewAction::make('wards')
+            ->label('Wards')
+            ->icon('c-users')
+            ->color('gray')
+            ->button()
+            ->modalWidth(MaxWidth::FitContent)
+            ->stickyModalHeader()
+            ->stickyModalFooter()
+            ->modalHeading('View Wards')
+            ->form(function (User $record) {
+                return $record->students->map(function (Student $student) {
+                    return Section::make(new HtmlString(
+                        '<p class="uppercase font-bold">' . $student->user->first_name . ' ' . $student->user->middle_name . ' ' . $student->user->last_name . '</p>'
+                    ))
+                        ->description('Click to toggle collapse.')
+                        ->icon('c-user')
+                        ->schema([
+                            TextInput::make('admission_number')
+                                ->label('Admission Number')
+                                ->placeholder($student->admission_number),
+                            TextInput::make('grade_name')
+                                ->label('Grade Name')
+                                ->placeholder($student->grade->name),
+                            TextInput::make('student_email')
+                                ->label('Email')
+                                ->placeholder($student->user->email),
+                            TextInput::make('student_gender')
+                                ->label('Gender')
+                                ->placeholder($student->user->gender),
+                            TextInput::make('student_religion')
+                                ->label('Religion')
+                                ->placeholder($student->user->religion),
+                            TextInput::make('student_phone')
+                                ->label('Phone')
+                                ->placeholder($student->user->phone)
+                                ->prefixIcon('c-phone'),
+                        ])
+                        ->columns()
+                        ->collapsed();
+                })->all();
             });
     }
 }

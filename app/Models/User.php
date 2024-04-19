@@ -25,13 +25,12 @@ class User extends Authenticatable implements CanResetPassword //, MustVerifyEma
         'school_id',
         'username',
         'email',
-        'password',
         'first_name',
         'middle_name',
         'last_name',
         'gender',
         'dob',
-        'contact_number',
+        'phone',
         'address',
         'lga_id',
         'state_id',
@@ -40,10 +39,11 @@ class User extends Authenticatable implements CanResetPassword //, MustVerifyEma
         'state_origin_id',
         'nationality_id',
         'postal_code',
-        'religion',
         'avatar',
         'status',
+        'religion',
         'email_verified_at',
+        'password',
     ];
 
     /**

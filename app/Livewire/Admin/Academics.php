@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\AgeRange;
 use App\Models\Grade;
 use App\Models\Role;
+use App\Models\Staff;
 use App\Models\Subject;
 use App\Models\User;
 use Livewire\Component;
@@ -45,15 +46,13 @@ class Academics extends Component implements HasActions, HasForms
             ->modalDescription('Create a new grade')
             ->createAnother(false)
             ->form([
-                Grid::make([
-                    'md' => 3
-                ])
+                Grid::make(['md' => 3])
                     ->schema([
                         TextInput::make('name')
                             ->placeholder('Grade 1')
                             ->required()
                             ->maxLength(100)
-                            ->minLength(4)
+                            ->minLength(1)
                             ->autocomplete()
                             ->autofocus(),
                         DatePicker::make('start_date')
@@ -73,12 +72,10 @@ class Academics extends Component implements HasActions, HasForms
                         Select::make('year_head_id')
                             ->label('Year Head')
                             ->placeholder('Select a staff')
-                            ->options(
-                                User::query()->whereHas('roles', function (Builder $query) {
-                                    $query->where('roles.id', Role::STAFF);
-                                })
-                                    ->pluck('last_name', 'id')
-                            )
+                            ->options(User::query()->whereHas('roles', function (Builder $query) {
+                                $query->where('roles.id', Role::STAFF);
+                            })
+                                ->pluck('last_name', 'id'))
                             ->searchable()
                             ->native(false),
                         Select::make('age_range')
@@ -86,11 +83,10 @@ class Academics extends Component implements HasActions, HasForms
                             ->placeholder('Select an Age Range')
                             ->options(AgeRange::class)
                             ->required()
-                            ->searchable()
                             ->native(false),
                         Select::make('status')
-                            ->placeholder('Select an option')
                             ->options(\App\Status::class)
+                            ->placeholder('Select an option')
                             ->required()
                             ->native(false),
                     ]),
@@ -101,10 +97,11 @@ class Academics extends Component implements HasActions, HasForms
             ->model(Grade::class)
             ->mutateFormDataUsing(function (array $data) {
                 $data['user_id'] = auth()->id();
+                $data['year_head_id'] = Staff::query()->where('user_id', $data['year_head_id'])->value('id');
                 return $data;
             })
             ->using(function (array $data, string $model): Model {
-                return DB::transaction(function () use ($model, $data) {
+                return DB::transaction(function () use ($data, $model) {
                     return $model::create($data);
                 });
             })
@@ -152,7 +149,7 @@ class Academics extends Component implements HasActions, HasForms
                 return $data;
             })
             ->using(function (array $data, string $model): Model {
-                return DB::transaction(function () use ($model, $data) {
+                return DB::transaction(function () use ($data, $model) {
                     return $model::create($data);
                 });
             })
@@ -186,16 +183,19 @@ class Academics extends Component implements HasActions, HasForms
                     ->bulkToggleable(),
             ])
             ->model(Grade::class)
-            ->using(function (array $data, string $model) {
-                $grades = $model::query()->findMany($data['grades']);
-                $subjects = Subject::query()->findMany($data['subjects']);
+            ->using(function (array $data, $model): Grade {
+                return DB::transaction(function () use ($data, $model) {
+                    $grades = $model::query()->findMany($data['grades']);
+                    $subjects = Subject::query()->findMany($data['subjects']);
 
-                $grades->each(function ($grade) use ($subjects) {
-                    DB::transaction(function () use ($grade, $subjects) {
+                    foreach ($grades as $grade) {
                         $grade->subjects()->syncWithoutDetaching($subjects);
-                    });
+                    }
+
+                    return $grade;
                 });
             })
-            ->successNotificationTitle('Linkage success');
+            ->successNotificationTitle('Linkage success')
+            ->successRedirectUrl(route('app.' . session('role') . '.academics.grades'));
     }
 }
