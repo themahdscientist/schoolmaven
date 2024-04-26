@@ -4,30 +4,28 @@ namespace App\Livewire\Admin;
 
 use App\AgeRange;
 use App\Models\Grade;
-use App\Models\Role;
-use App\Models\Staff;
+use App\Models\StaffRole;
 use App\Models\Subject;
 use App\Models\User;
-use Livewire\Component;
 use Filament\Actions\Action;
-use Livewire\Attributes\Title;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Grid;
-use Filament\Support\Enums\MaxWidth;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Support\Enums\ActionSize;
-use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\Textarea;
+use Filament\Support\Enums\MaxWidth;
 use Illuminate\Database\Eloquent\Model;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\DatePicker;
-use Filament\Actions\Contracts\HasActions;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Actions\Concerns\InteractsWithActions;
-use Filament\Forms\Components\CheckboxList;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Title;
+use Livewire\Component;
 
 #[Title('Academics')]
 class Academics extends Component implements HasActions, HasForms
@@ -38,7 +36,7 @@ class Academics extends Component implements HasActions, HasForms
     public function grade(): Action
     {
         return CreateAction::make('grade')
-            ->icon('c-folder-plus')
+            ->icon('s-folder-plus')
             ->label('Create grade')
             ->size(ActionSize::ExtraLarge)
             ->modalWidth(MaxWidth::ScreenMedium)
@@ -71,13 +69,24 @@ class Academics extends Component implements HasActions, HasForms
                     ->schema([
                         Select::make('year_head_id')
                             ->label('Year Head')
-                            ->placeholder('Select a staff')
-                            ->options(User::query()->whereHas('roles', function (Builder $query) {
-                                $query->where('roles.id', Role::STAFF);
-                            })
-                                ->pluck('last_name', 'id'))
+                            ->options(
+                                User::query()
+                                    ->join('staff', 'users.id', '=', 'staff.user_id')
+                                    ->whereExists(function ($query) {
+                                        $query->select(DB::raw(1))
+                                            ->from('roles')
+                                            ->join('role_user', 'roles.id', '=', 'role_user.role_id')
+                                            ->whereColumn('users.id', 'role_user.user_id')
+                                            ->where('name', 'staff');
+                                    })
+                                    ->where('staff.staff_type', StaffRole::TEACHING_STAFF)
+                                    ->get(['first_name', 'middle_name', 'last_name', 'staff.id as staff_id'])
+                                    ->pluck('full_name', 'staff_id')
+                            )
                             ->searchable()
-                            ->native(false),
+                            ->native(false)
+                            ->hintIcon('s-exclamation-circle', 'This list contains only staff members who are teachers.')
+                            ->hintColor('danger'),
                         Select::make('age_range')
                             ->label('Age Range')
                             ->placeholder('Select an Age Range')
@@ -97,7 +106,7 @@ class Academics extends Component implements HasActions, HasForms
             ->model(Grade::class)
             ->mutateFormDataUsing(function (array $data) {
                 $data['user_id'] = auth()->id();
-                $data['year_head_id'] = Staff::query()->where('user_id', $data['year_head_id'])->value('id');
+
                 return $data;
             })
             ->using(function (array $data, string $model): Model {
@@ -106,13 +115,13 @@ class Academics extends Component implements HasActions, HasForms
                 });
             })
             ->successNotificationTitle('Grade created')
-            ->successRedirectUrl(route('app.' . session('role') . '.academics.grades'));
+            ->successRedirectUrl(route('app.'.session('role').'.academics.grades'));
     }
 
     public function subject(): Action
     {
         return CreateAction::make('subject')
-            ->icon('c-folder-plus')
+            ->icon('s-folder-plus')
             ->label('Create subject')
             ->size(ActionSize::ExtraLarge)
             ->modalWidth(MaxWidth::Medium)
@@ -146,6 +155,7 @@ class Academics extends Component implements HasActions, HasForms
             ->model(Subject::class)
             ->mutateFormDataUsing(function (array $data) {
                 $data['user_id'] = auth()->id();
+
                 return $data;
             })
             ->using(function (array $data, string $model): Model {
@@ -154,13 +164,13 @@ class Academics extends Component implements HasActions, HasForms
                 });
             })
             ->successNotificationTitle('Subject created')
-            ->successRedirectUrl(route('app.' . session('role') . '.academics.subjects'));
+            ->successRedirectUrl(route('app.'.session('role').'.academics.subjects'));
     }
 
     public function grade_subject(): Action
     {
         return CreateAction::make('grade_subject')
-            ->icon('c-link')
+            ->icon('s-link')
             ->label('Grade-Subject Link')
             ->size(ActionSize::ExtraLarge)
             ->modalWidth(MaxWidth::Medium)
@@ -188,14 +198,14 @@ class Academics extends Component implements HasActions, HasForms
                     $grades = $model::query()->findMany($data['grades']);
                     $subjects = Subject::query()->findMany($data['subjects']);
 
-                    foreach ($grades as $grade) {
+                    $grades->each(function (Grade $grade) use ($subjects) {
                         $grade->subjects()->syncWithoutDetaching($subjects);
-                    }
+                    });
 
-                    return $grade;
+                    return $grades->first();
                 });
             })
             ->successNotificationTitle('Linkage success')
-            ->successRedirectUrl(route('app.' . session('role') . '.academics.grades'));
+            ->successRedirectUrl(route('app.'.session('role').'.academics.grades'));
     }
 }

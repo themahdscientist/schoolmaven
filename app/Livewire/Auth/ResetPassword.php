@@ -3,17 +3,17 @@
 namespace App\Livewire\Auth;
 
 use App\Models\User;
-use Livewire\Component;
-use Illuminate\Support\Str;
-use Livewire\Attributes\Title;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Validate;
+use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
+use DanHarrin\LivewireRateLimiting\WithRateLimiting;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use DanHarrin\LivewireRateLimiting\WithRateLimiting;
-use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Validate;
+use Livewire\Component;
 
 #[Layout('components.layouts.security')]
 #[Title('Reset Password')]
@@ -38,13 +38,13 @@ class ResetPassword extends Component
     public function update()
     {
         $this->validate();
-        
+
         try {
             $this->rateLimit(1);
         } catch (TooManyRequestsException $exception) {
             $this->status = "Too many reset requests! Please wait another {$exception->secondsUntilAvailable} seconds before retrying.";
             throw ValidationException::withMessages([
-                'email' => "Cross-check your reset credentials."
+                'email' => 'Cross-check your reset credentials.',
             ]);
         }
 
@@ -59,6 +59,7 @@ class ResetPassword extends Component
 
         if ($this->status === Password::PASSWORD_RESET) {
             session()->flash('status', __($this->status));
+
             return $this->redirectRoute('app.login', navigate: true);
         }
 

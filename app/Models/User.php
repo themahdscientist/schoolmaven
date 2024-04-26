@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -68,6 +69,13 @@ class User extends Authenticatable implements CanResetPassword //, MustVerifyEma
             'password' => 'hashed',
             'dob' => 'date',
         ];
+    }
+
+    protected function fullName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->first_name.($this->middle_name ? ' '.$this->middle_name : '').' '.$this->last_name,
+        );
     }
 
     public function school(): BelongsTo

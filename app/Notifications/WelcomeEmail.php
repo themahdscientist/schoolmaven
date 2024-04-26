@@ -12,7 +12,9 @@ class WelcomeEmail extends Notification implements ShouldQueue
     use Queueable;
 
     private $user;
+
     private $school_name;
+
     private $smil_code;
 
     /**
@@ -41,15 +43,15 @@ class WelcomeEmail extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('⚡ Welcome to ' . __(config('app.name')))
+            ->subject('⚡ Welcome to '.__(config('app.name')))
             ->tag('welcome')
-            ->greeting('Hello ' . $this->user->first_name . ',')
-            ->line('The ' . __(config('app.name')) . ' team welcomes you to the digital frontier of tomorrow\'s education! ' .  $this->school_name . ' has been provisioned successfully 🎉. Your credentials are outlined below.')
-            ->line('School identifier: ' . $this->smil_code)
-            ->line('Username: ' . $this->user->username)
+            ->greeting('Hello '.$this->user->first_name.',')
+            ->line('The '.__(config('app.name')).' team welcomes you to the digital frontier of tomorrow\'s education! '.$this->school_name.' has been provisioned successfully 🎉. Your credentials are outlined below.')
+            ->line('School identifier: '.$this->smil_code)
+            ->line('Username: '.$this->user->username)
             ->line('We will never ask for your login credentials such as your username or password unless in an instance of a compromised account. Do not share your personal information with unverified parties!')
-            ->action('View Dashboard', config('app.url') . ':8000/admin/dashboard')
-            ->line('Once again, thanks for choosing ' . __(config('app.name')) . ' ✨!');
+            ->action('View Dashboard', config('app.url').':8000/admin/dashboard')
+            ->line('Once again, thanks for choosing '.__(config('app.name')).' ✨!');
     }
 
     /**

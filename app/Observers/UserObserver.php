@@ -20,7 +20,9 @@ class UserObserver
      */
     public function updated(User $user): void
     {
-        if ($user->isDirty('avatar')) Storage::disk('public')->delete($user->getOriginal('avatar'));
+        if ($user->isDirty('avatar') && $user->getOriginal('avatar')) {
+            Storage::disk('public')->delete($user->getOriginal('avatar'));
+        }
     }
 
     /**
@@ -28,7 +30,9 @@ class UserObserver
      */
     public function deleted(User $user): void
     {
-        if (!is_null($user->avatar)) Storage::disk('public')->delete($user->avatar);
+        if (! is_null($user->avatar)) {
+            Storage::disk('public')->delete($user->avatar);
+        }
     }
 
     /**

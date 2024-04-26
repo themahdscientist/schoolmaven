@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Staff extends Model
@@ -13,6 +14,8 @@ class Staff extends Model
 
     protected $fillable = [
         'user_id',
+        'grade_id',
+        'staff_type',
         'staff_code',
         'position_title',
         'contract_type',
@@ -48,13 +51,13 @@ class Staff extends Model
         return $this->hasOne(Grade::class);
     }
 
-    public function teachingStaff(): HasOne
+    public function grades(): BelongsToMany
     {
-        return $this->hasOne(TeachingStaff::class);
+        return $this->belongsToMany(Grade::class);
     }
 
-    public function nonTeachingStaff(): HasOne
+    public function staffRole(): BelongsTo
     {
-        return $this->hasOne(NonTeachingStaff::class);
+        return $this->belongsTo(StaffRole::class);
     }
 }

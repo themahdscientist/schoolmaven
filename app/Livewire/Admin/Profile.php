@@ -2,36 +2,36 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\Lga;
-use App\Models\User;
-use App\Models\State;
 use App\Models\Country;
+use App\Models\Lga;
+use App\Models\State;
+use App\Models\User;
+use Filament\Forms\Components\Actions;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Split;
+use Filament\Forms\Components\Tabs;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Livewire\Component;
-use Filament\Forms\Form;
-use Illuminate\Support\Str;
-use Livewire\Attributes\Title;
-use Illuminate\Support\Collection;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Tabs;
-use Filament\Forms\Components\Split;
+use Filament\Notifications\Notification;
 use Filament\Support\Enums\IconSize;
 use Filament\Support\Enums\MaxWidth;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Actions;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\KeyValue;
-use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\CheckboxList;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Concerns\InteractsWithForms;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Title;
+use Livewire\Component;
 
 #[Title('Profile')]
 class Profile extends Component implements HasForms
@@ -39,6 +39,7 @@ class Profile extends Component implements HasForms
     use InteractsWithForms;
 
     public ?array $data = [];
+
     public User $record;
 
     public function mount(): void
@@ -55,7 +56,7 @@ class Profile extends Component implements HasForms
                     Tabs::make()
                         ->tabs([
                             Tabs\Tab::make('Personal Information')
-                                ->icon('c-user')
+                                ->icon('s-user')
                                 ->schema([
                                     Fieldset::make('Name')
                                         ->schema([
@@ -65,7 +66,6 @@ class Profile extends Component implements HasForms
                                                 ->maxLength(255),
                                             TextInput::make('middle_name')
                                                 ->label('Middle Name')
-                                                ->required()
                                                 ->maxLength(255),
                                             TextInput::make('last_name')
                                                 ->label('Last Name')
@@ -104,7 +104,7 @@ class Profile extends Component implements HasForms
                                             TextInput::make('phone')
                                                 ->formatStateUsing(fn ($state) => Str::substr($state, 4))
                                                 ->tel()
-                                                ->prefixIcon('c-phone')
+                                                ->prefixIcon('s-phone')
                                                 ->prefix('+234')
                                                 ->placeholder('7059753934')
                                                 ->autocomplete()
@@ -138,12 +138,12 @@ class Profile extends Component implements HasForms
                                         ]),
                                 ]),
                             Tabs\Tab::make('School Information')
-                                ->icon('c-building-library')
+                                ->icon('s-building-library')
                                 ->schema([
                                     Actions::make([
                                         Actions\Action::make('viewSchool')
                                             ->label('View School')
-                                            ->icon('c-eye')
+                                            ->icon('s-eye')
                                             ->iconSize(IconSize::Small)
                                             ->modalWidth(MaxWidth::Full)
                                             ->modalHeading('School Info')
@@ -248,7 +248,7 @@ class Profile extends Component implements HasForms
                                                         ->collapsible()
                                                         ->grow(false),
                                                 ])
-                                                    ->from('md')
+                                                    ->from('md'),
                                             ])
                                             ->fillForm(fn (User $record) => $record->load('school')->school->load(['country', 'state', 'lga'])->toArray())
                                             ->afterFormValidated(function (User $record, array $data): User {
@@ -259,18 +259,19 @@ class Profile extends Component implements HasForms
                                                     ->title('Saved')
                                                     ->success()
                                                     ->send();
+
                                                 return $record;
                                             }),
                                     ])
                                         ->fullWidth(),
                                 ]),
                             Tabs\Tab::make('Role Information')
-                                ->icon('c-finger-print')
+                                ->icon('s-finger-print')
                                 ->schema([
                                     Actions::make([
                                         Actions\Action::make('viewRoles')
                                             ->label('View Roles')
-                                            ->icon('c-eye')
+                                            ->icon('s-eye')
                                             ->iconSize(IconSize::Small)
                                             ->modalWidth(MaxWidth::Medium)
                                             ->modalHeading('Your Roles')
@@ -297,6 +298,7 @@ class Profile extends Component implements HasForms
                                                     ->title('Saved')
                                                     ->success()
                                                     ->send();
+
                                                 return $record;
                                             }),
                                     ])
@@ -305,7 +307,7 @@ class Profile extends Component implements HasForms
                         ]),
                     Section::make('Security')
                         ->description('Change your password and profile picture here')
-                        ->icon('c-shield-check')
+                        ->icon('s-shield-check')
                         ->schema([
                             FileUpload::make('avatar')
                                 ->label('Profile Picture')
@@ -347,7 +349,7 @@ class Profile extends Component implements HasForms
                                 ]),
                             Actions::make([
                                 Actions\Action::make('Change Password')
-                                    ->icon('c-lock-closed')
+                                    ->icon('s-lock-closed')
                                     ->iconSize(IconSize::Small)
                                     ->modalWidth(MaxWidth::FitContent)
                                     ->modalHeading('Change Password')
@@ -375,7 +377,7 @@ class Profile extends Component implements HasForms
                                     ->afterFormValidated(function (array $data, User $record) {
                                         if (Hash::check($data['password'], $record->password)) {
                                             $record->forceFill([
-                                                'password' => Hash::make($data['new_password'])
+                                                'password' => Hash::make($data['new_password']),
                                             ]);
                                             $record->save();
 
@@ -398,13 +400,13 @@ class Profile extends Component implements HasForms
                                                 ->danger()
                                                 ->send();
                                         }
-                                    })
-                            ])
+                                    }),
+                            ]),
                         ])
                         ->collapsible()
                         ->grow(false),
                 ])
-                    ->from('md')
+                    ->from('md'),
             ])
             ->statePath('data')
             ->model($this->record);
@@ -413,11 +415,10 @@ class Profile extends Component implements HasForms
     public function save(): void
     {
         $data = $this->form->getState();
-        $data['phone'] = '+234' . $data['phone'];
+        $data['phone'] = '+234'.$data['phone'];
 
         $this->record->fill($data);
         $this->record->save();
-
 
         Notification::make()
             ->title('Saved')

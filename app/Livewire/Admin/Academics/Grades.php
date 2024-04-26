@@ -6,6 +6,7 @@ use App\AgeRange;
 use App\Models\Grade;
 use App\Models\Role;
 use App\Models\Staff;
+use App\Models\StaffRole;
 use App\Models\Subject;
 use App\Models\User;
 use Filament\Forms\Components\CheckboxList;
@@ -17,7 +18,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Support\Enums\ActionSize;
 use Filament\Support\Enums\MaxWidth;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
@@ -39,8 +39,8 @@ use Livewire\Component;
 #[Title('Grades')]
 class Grades extends Component implements HasForms, HasTable
 {
-    use InteractsWithTable;
     use InteractsWithForms;
+    use InteractsWithTable;
 
     public function table(Table $table): Table
     {
@@ -49,32 +49,37 @@ class Grades extends Component implements HasForms, HasTable
             ->description('Manage your grades (classes) here.')
             ->striped()
             ->headerActions([
+                $this->staffGradeLink(),
                 $this->gradeSubjectLink(),
-                $this->gradeCreateAction()
-
+                $this->gradeCreateAction(),
             ])
             ->actions([
                 $this->subjectsEditAction(),
                 ActionGroup::make([
                     $this->gradeEditAction(),
-                    DeleteAction::make()
+                    DeleteAction::make(),
                 ])
-                    ->color('gray')
                     ->tooltip('Actions'),
             ])
             ->query(Grade::query())
             ->columns([
+                TextColumn::make('#')
+                    ->label('S/N')
+                    ->searchable(false)
+                    ->rowIndex(),
                 TextColumn::make('name'),
-                TextColumn::make('staff.user.first_name')
-                    ->formatStateUsing(fn ($state, $record) => $state . ' ' . $record->staff->user->last_name)
+                TextColumn::make('staff.user.full_name')
+                    ->searchable(['first_name', 'middle_name', 'last_name'])
                     ->label('Year Head')
                     ->placeholder('unassigned'),
                 TextColumn::make('subjects_count')
                     ->label('No. of Subjects')
-                    ->counts('subjects'),
+                    ->counts('subjects')
+                    ->searchable(false),
                 TextColumn::make('age_range')
                     ->label('Age Range'),
-                TextColumn::make('user.username')
+                TextColumn::make('user.full_name')
+                    ->searchable(['first_name', 'middle_name', 'last_name'])
                     ->label('Created by'),
                 IconColumn::make('status')
                     ->icon(fn (Grade $record): string => \App\Status::from($record->status)->getIcon())
@@ -85,12 +90,12 @@ class Grades extends Component implements HasForms, HasTable
                 SelectFilter::make('status')
                     ->options([
                         'active' => 'Active',
-                        'inactive' => 'Inactive'
+                        'inactive' => 'Inactive',
                     ])
                     ->native(false)
-                    ->placeholder('Select an option')
+                    ->placeholder('Select an option'),
             ])
-            ->emptyStateIcon('m-rectangle-stack')
+            ->emptyStateIcon('s-rectangle-stack')
             ->emptyStateHeading('No grades')
             ->emptyStateDescription('Create a grade to get started')
             ->emptyStateActions([$this->gradeCreateAction()]);
@@ -99,7 +104,7 @@ class Grades extends Component implements HasForms, HasTable
     public function gradeCreateAction(): Action
     {
         return CreateAction::make()
-            ->icon('m-folder-plus')
+            ->icon('s-folder-plus')
             ->label('Create grade')
             ->modalWidth(MaxWidth::ScreenMedium)
             ->modalHeading('Grade registration')
@@ -131,13 +136,24 @@ class Grades extends Component implements HasForms, HasTable
                     ->schema([
                         Select::make('year_head_id')
                             ->label('Year Head')
-                            ->placeholder('Select a staff')
-                            ->options(User::query()->whereHas('roles', function (Builder $query) {
-                                $query->where('roles.id', Role::STAFF);
-                            })
-                                ->pluck('last_name', 'id'))
+                            ->options(
+                                User::query()
+                                    ->join('staff', 'users.id', '=', 'staff.user_id')
+                                    ->whereExists(function ($query) {
+                                        $query->select(DB::raw(1))
+                                            ->from('roles')
+                                            ->join('role_user', 'roles.id', '=', 'role_user.role_id')
+                                            ->whereColumn('users.id', 'role_user.user_id')
+                                            ->where('name', 'staff');
+                                    })
+                                    ->where('staff.staff_type', StaffRole::TEACHING_STAFF)
+                                    ->get(['first_name', 'middle_name', 'last_name', 'staff.id as staff_id'])
+                                    ->pluck('full_name', 'staff_id')
+                            )
                             ->searchable()
-                            ->native(false),
+                            ->native(false)
+                            ->hintIcon('s-exclamation-circle', 'This list contains only staff members who are teachers.')
+                            ->hintColor('danger'),
                         Select::make('age_range')
                             ->label('Age Range')
                             ->placeholder('Select an Age Range')
@@ -157,7 +173,7 @@ class Grades extends Component implements HasForms, HasTable
             ->model(Grade::class)
             ->mutateFormDataUsing(function (array $data) {
                 $data['user_id'] = auth()->id();
-                $data['year_head_id'] = Staff::query()->where('user_id', $data['year_head_id'])->value('id');
+
                 return $data;
             })
             ->using(function (array $data, string $model): Model {
@@ -176,7 +192,7 @@ class Grades extends Component implements HasForms, HasTable
             ->modalDescription('You can view and edit grade information here')
             ->form([
                 Grid::make([
-                    'md' => 3
+                    'md' => 3,
                 ])
                     ->schema([
                         TextInput::make('name')
@@ -205,7 +221,8 @@ class Grades extends Component implements HasForms, HasTable
                             ->options(User::query()->whereHas('roles', function (Builder $query) {
                                 $query->where('roles.id', Role::STAFF);
                             })
-                                ->pluck('last_name', 'id'))
+                                ->get()
+                                ->pluck('full_name', 'id'))
                             ->searchable()
                             ->native(false),
                         Select::make('age_range')
@@ -232,6 +249,7 @@ class Grades extends Component implements HasForms, HasTable
             ->mutateFormDataUsing(function (array $data) {
                 $data['year_head_id'] = Staff::query()->where('user_id', $data['staff']['user']['id'])->value('id');
                 unset($data['staff']);
+
                 return $data;
             });
     }
@@ -239,7 +257,7 @@ class Grades extends Component implements HasForms, HasTable
     public function gradeSubjectLink(): Action
     {
         return CreateAction::make('grade_subject')
-            ->icon('c-link')
+            ->icon('s-link')
             ->label('Link a subject')
             ->modalWidth(MaxWidth::Medium)
             ->modalHeading('Grade Subject Linking')
@@ -266,11 +284,11 @@ class Grades extends Component implements HasForms, HasTable
                     $grades = $model::query()->findMany($data['grades']);
                     $subjects = Subject::query()->findMany($data['subjects']);
 
-                    foreach ($grades as $grade) {
+                    $grades->each(function (Grade $grade) use ($subjects) {
                         $grade->subjects()->syncWithoutDetaching($subjects);
-                    }
+                    });
 
-                    return $grade;
+                    return $grades->first();
                 });
             })
             ->successNotificationTitle('Linkage success');
@@ -280,7 +298,7 @@ class Grades extends Component implements HasForms, HasTable
     {
         return EditAction::make('subjects')
             ->label('Subjects')
-            ->icon('c-newspaper')
+            ->icon('s-newspaper')
             ->color('gray')
             ->button()
             ->modalWidth(MaxWidth::FitContent)
@@ -294,5 +312,60 @@ class Grades extends Component implements HasForms, HasTable
                     ->relationship('subjects', 'name')
                     ->bulkToggleable(),
             ]);
+    }
+
+    public function staffGradeLink(): Action
+    {
+        return CreateAction::make('staff_grade')
+            ->icon('s-squares-plus')
+            ->label('Assign teachers')
+            ->modalWidth(MaxWidth::Medium)
+            ->modalHeading('Staff Grade Linking')
+            ->modalDescription('Assign grades to staff members')
+            ->modalSubmitActionLabel('Assign')
+            ->createAnother(false)
+            ->form([
+                Select::make('teachers')
+                    ->options(
+                        User::query()
+                            ->join('staff', 'users.id', '=', 'staff.user_id')
+                            ->whereExists(function ($query) {
+                                $query->select(DB::raw(1))
+                                    ->from('roles')
+                                    ->join('role_user', 'roles.id', '=', 'role_user.role_id')
+                                    ->whereColumn('users.id', 'role_user.user_id')
+                                    ->where('name', 'staff');
+                            })
+                            ->where('staff.staff_type', StaffRole::TEACHING_STAFF)
+                            ->get(['first_name', 'middle_name', 'last_name', 'staff.id as staff_id'])
+                            ->pluck('full_name', 'staff_id')
+                    )
+                    ->multiple()
+                    ->required()
+                    ->searchable()
+                    ->native(false)
+                    ->hintIcon('s-exclamation-circle', 'This list contains only staff members who are teachers.')
+                    ->hintColor('danger'),
+                CheckboxList::make('grades')
+                    ->options(Grade::all()->pluck('name', 'id'))
+                    ->required()
+                    ->columns()
+                    ->searchable()
+                    ->bulkToggleable(),
+            ])
+            ->model(Staff::class)
+            ->using(function (array $data, $model): Staff {
+                return DB::transaction(function () use ($data, $model) {
+                    $teachers = $model::query()->findMany($data['teachers']);
+                    $grades = Grade::query()->findMany($data['grades']);
+
+                    $teachers->each(function (Staff $teacher) use ($grades) {
+                        $teacher->grades()->syncWithoutDetaching($grades);
+                    });
+
+                    return $teachers->first();
+                });
+            })
+            ->successNotificationTitle('Linkage success');
     }
 }

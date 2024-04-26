@@ -18,7 +18,10 @@ class Role extends Model
     }
 
     public const ADMIN = 1;
+
     public const STUDENT = 2;
+
     public const STAFF = 3;
+
     public const GUARDIAN = 4;
 }

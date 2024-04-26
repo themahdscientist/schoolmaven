@@ -2,43 +2,42 @@
 
 namespace App\Livewire\Admin;
 
-use Carbon\Carbon;
-use App\Models\Lga;
-use App\Models\Role;
-use App\Models\User;
-use App\Models\State;
 use App\Models\Country;
 use App\Models\Grade;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
-use Livewire\Component;
 use App\Models\Guardian;
+use App\Models\Lga;
+use App\Models\Role;
 use App\Models\Staff;
+use App\Models\StaffRole;
+use App\Models\State;
 use App\Models\Student;
-use Illuminate\Support\Str;
+use App\Models\User;
 use Filament\Actions\Action;
-use Livewire\Attributes\Title;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
 use Filament\Actions\CreateAction;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Filament\Support\Enums\MaxWidth;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Support\Enums\ActionSize;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Database\Eloquent\Model;
-use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Actions\Contracts\HasActions;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Wizard\Step;
 use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Actions\Concerns\InteractsWithActions;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Textarea;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Notifications\Notification;
+use Filament\Support\Enums\ActionSize;
+use Filament\Support\Enums\MaxWidth;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Title;
+use Livewire\Component;
 
 #[Title('Admissions')]
 class Admissions extends Component implements HasActions, HasForms
@@ -49,7 +48,7 @@ class Admissions extends Component implements HasActions, HasForms
     public function student(): Action
     {
         return CreateAction::make('student')
-            ->icon('c-user-plus')
+            ->icon('s-user-plus')
             ->label('New Student')
             ->size(ActionSize::ExtraLarge)
             ->modalWidth(MaxWidth::FitContent)
@@ -93,7 +92,7 @@ class Admissions extends Component implements HasActions, HasForms
                             ->required()
                             ->maxLength(255)
                             ->unique('users', 'email')
-                            ->hintIcon('c-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
+                            ->hintIcon('s-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
                         Select::make('gender')
                             ->label('Gender')
                             ->options([
@@ -183,20 +182,20 @@ class Admissions extends Component implements HasActions, HasForms
                             ->label('Postal Code')
                             ->placeholder('460242')
                             ->autocomplete()
-                            ->hintIcon('c-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
+                            ->hintIcon('s-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
                             ->nullable(),
                         TextInput::make('phone')
                             ->tel()
                             ->label('Phone Number')
                             ->prefix('+234')
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->placeholder('7059753934')
                             ->autocomplete()
                             ->required(),
                         TextInput::make('emergency_phone')
                             ->label('Emergency Contact Number')
                             ->tel()
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->prefix('+234')
                             ->placeholder('7059753934'),
                         Select::make('guardian_id')
@@ -205,7 +204,8 @@ class Admissions extends Component implements HasActions, HasForms
                             ->options(User::query()->whereHas('roles', function (Builder $query) {
                                 $query->where('roles.id', Role::GUARDIAN);
                             })
-                                ->pluck('last_name', 'id'))
+                                ->get()
+                                ->pluck('full_name', 'id'))
                             ->searchable()
                             ->nullable()
                             ->native(false),
@@ -250,14 +250,14 @@ class Admissions extends Component implements HasActions, HasForms
                             ->imageCropAspectRatio('1:1')
                             ->maxSize(1024)
                             ->disk('public')
-                            ->directory('avatars')
-                    ])
+                            ->directory('avatars'),
+                    ]),
             ])
             ->model(User::class)
             ->mutateFormDataUsing(function (array $data, string $model) {
-                $date = Carbon::now()->year;
-                $hour  = Carbon::now()->hour;
-                $second  = Carbon::now()->second;
+                $date = now()->year;
+                $hour = now()->hour;
+                $second = now()->second;
                 $school = $model::query()->find(auth()->id())->school;
 
                 $last_student = Student::query()->whereHas('user.school', function (Builder $query) use ($school) {
@@ -273,13 +273,14 @@ class Admissions extends Component implements HasActions, HasForms
                 $first = substr($date, 0, 2);
                 $last = substr($date, -2);
 
-                $data['admission_number'] = $first . $code . $serial . $last;
-                $data['username'] = substr($date, 0, 2) .
-                    strtolower(Str::trim($data['first_name']) .
-                        substr(Str::trim($data['last_name']), 0, 1) .
-                        substr(Str::trim($data['last_name']), -1)) .
-                    substr($date, -2) . $hour . $second;
+                $data['admission_number'] = $first.$code.$serial.$last;
+                $data['username'] = substr($date, 0, 2).
+                    strtolower(Str::trim($data['first_name']).
+                        substr(Str::trim($data['last_name']), 0, 1).
+                        substr(Str::trim($data['last_name']), -1)).
+                    substr($date, -2).$hour.$second;
                 $data['guardian_id'] = Guardian::query()->where('user_id', $data['guardian_id'])->value('id');
+
                 return $data;
             })
             ->using(function (array $data, string $model): Model {
@@ -295,7 +296,7 @@ class Admissions extends Component implements HasActions, HasForms
                     $user->gender = $data['gender'];
                     $user->dob = $data['dob'];
                     $user->religion = $data['religion'];
-                    $user->phone = '+234' . $data['phone'];
+                    $user->phone = '+234'.$data['phone'];
                     $user->address = $data['address'];
                     $user->postal_code = $data['postal_code'];
                     $user->lga_id = $data['lga_id'];
@@ -316,7 +317,7 @@ class Admissions extends Component implements HasActions, HasForms
                     $student->admission_number = $data['admission_number'];
                     $student->blood_group = $data['blood_group'];
                     $student->rhesus_factor = $data['rhesus_factor'];
-                    $student->emergency_phone = '+234' . $data['emergency_phone'];
+                    $student->emergency_phone = '+234'.$data['emergency_phone'];
                     $student->save();
 
                     event(new Registered($user));
@@ -336,13 +337,13 @@ class Admissions extends Component implements HasActions, HasForms
                     ->body('Student has been provisioned 🎉')
                     ->success()
             )
-            ->successRedirectUrl(route('app.' . session('role') . '.students'));
+            ->successRedirectUrl(route('app.'.session('role').'.students'));
     }
 
     public function guardian(): Action
     {
         return CreateAction::make('guardian')
-            ->icon('c-user-plus')
+            ->icon('s-user-plus')
             ->label('New Guardian')
             ->size(ActionSize::ExtraLarge)
             ->modalWidth(MaxWidth::FitContent)
@@ -386,7 +387,7 @@ class Admissions extends Component implements HasActions, HasForms
                             ->required()
                             ->maxLength(255)
                             ->unique('users', 'email')
-                            ->hintIcon('c-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
+                            ->hintIcon('s-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
                         Select::make('gender')
                             ->label('Gender')
                             ->options([
@@ -484,13 +485,13 @@ class Admissions extends Component implements HasActions, HasForms
                             ->label('Postal Code')
                             ->placeholder('460242')
                             ->autocomplete()
-                            ->hintIcon('c-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
+                            ->hintIcon('s-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
                             ->nullable(),
                         TextInput::make('phone')
                             ->tel()
                             ->label('Phone Number')
                             ->prefix('+234')
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->placeholder('7059753934')
                             ->autocomplete()
                             ->required(),
@@ -506,23 +507,24 @@ class Admissions extends Component implements HasActions, HasForms
                             ->imageCropAspectRatio('1:1')
                             ->maxSize(1024)
                             ->disk('public')
-                            ->directory('avatars')
-                    ])
+                            ->directory('avatars'),
+                    ]),
             ])
             ->model(User::class)
             ->mutateFormDataUsing(function (array $data, string $model) {
-                $date = Carbon::now()->year;
-                $hour  = Carbon::now()->hour;
-                $second  = Carbon::now()->second;
+                $date = now()->year;
+                $hour = now()->hour;
+                $second = now()->second;
 
-                $data['guardian_code'] = substr($date, 0, 2) .
-                    $model::query()->find(auth()->id())->school->smil_code .
-                    substr($date, -2) . $hour . $second;
-                $data['username'] = substr($date, 0, 2) .
-                    strtolower(Str::trim($data['first_name']) .
-                        substr(Str::trim($data['last_name']), 0, 1) .
-                        substr(Str::trim($data['last_name']), -1)) .
-                    substr($date, -2) . $hour . $second;
+                $data['guardian_code'] = substr($date, 0, 2).
+                    $model::query()->find(auth()->id())->school->smil_code.
+                    substr($date, -2).$hour.$second;
+                $data['username'] = substr($date, 0, 2).
+                    strtolower(Str::trim($data['first_name']).
+                        substr(Str::trim($data['last_name']), 0, 1).
+                        substr(Str::trim($data['last_name']), -1)).
+                    substr($date, -2).$hour.$second;
+
                 return $data;
             })
             ->using(function (array $data, string $model): Model {
@@ -538,7 +540,7 @@ class Admissions extends Component implements HasActions, HasForms
                     $user->gender = $data['gender'];
                     $user->dob = $data['dob'];
                     $user->religion = $data['religion'];
-                    $user->phone = '+234' . $data['phone'];
+                    $user->phone = '+234'.$data['phone'];
                     $user->address = $data['address'];
                     $user->postal_code = $data['postal_code'];
                     $user->lga_id = $data['lga_id'];
@@ -576,13 +578,13 @@ class Admissions extends Component implements HasActions, HasForms
                     ->body('Guardian has been provisioned 🎉')
                     ->success()
             )
-            ->successRedirectUrl(route('app.' . session('role') . '.guardians'));
+            ->successRedirectUrl(route('app.'.session('role').'.guardians'));
     }
 
     public function student_guardian(): Action
     {
         return CreateAction::make('student_guardian')
-            ->icon('c-link')
+            ->icon('s-link')
             ->label('Student-Guardian Link')
             ->size(ActionSize::ExtraLarge)
             ->modalWidth(MaxWidth::Medium)
@@ -596,7 +598,8 @@ class Admissions extends Component implements HasActions, HasForms
                     ->options(User::query()->whereHas('roles', function (Builder $query) {
                         $query->where('roles.id', Role::GUARDIAN);
                     })
-                        ->pluck('last_name', 'id'))
+                        ->get()
+                        ->pluck('full_name', 'id'))
                     ->required()
                     ->searchable()
                     ->native(false),
@@ -606,7 +609,8 @@ class Admissions extends Component implements HasActions, HasForms
                     ->options(User::query()->whereHas('roles', function (Builder $query) {
                         $query->where('roles.id', Role::STUDENT);
                     })
-                        ->pluck('first_name', 'id'))
+                        ->get()
+                        ->pluck('full_name', 'id'))
                     ->required()
                     ->searchable(['first_name', 'middle_name', 'last_name'])
                     ->native(false),
@@ -614,6 +618,7 @@ class Admissions extends Component implements HasActions, HasForms
             ->model(User::class)
             ->mutateFormDataUsing(function (array $data) {
                 $data['guardian_id'] = Guardian::query()->where('user_id', $data['guardian_id'])->value('id');
+
                 return $data;
             })
             ->using(function (array $data, string $model) {
@@ -632,7 +637,7 @@ class Admissions extends Component implements HasActions, HasForms
     public function staff(): Action
     {
         return CreateAction::make('staff')
-            ->icon('c-document-plus')
+            ->icon('s-document-plus')
             ->label('New Staff')
             ->modalWidth(MaxWidth::FitContent)
             ->closeModalByClickingAway(false)
@@ -644,7 +649,7 @@ class Admissions extends Component implements HasActions, HasForms
             ->steps([
                 Step::make('Personal Info')
                     ->description('Staff bio-data.')
-                    ->columns(2)
+                    ->columns(['md' => 2])
                     ->schema([
                         Select::make('position_title')
                             ->label('Position Title')
@@ -680,7 +685,7 @@ class Admissions extends Component implements HasActions, HasForms
                             ->required()
                             ->maxLength(255)
                             ->unique('users', 'email')
-                            ->hintIcon('c-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
+                            ->hintIcon('s-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
                         Select::make('gender')
                             ->label('Gender')
                             ->options([
@@ -749,13 +754,15 @@ class Admissions extends Component implements HasActions, HasForms
                             ->required(),
                         TextInput::make('salary')
                             ->numeric()
+                            ->inputMode('decimal')
+                            ->step(500)
                             ->prefix(new HtmlString('<strong>NGN</strong>'))
                             ->placeholder('150000')
                             ->required(),
                     ]),
                 Step::make('Contact & Security Info')
                     ->description('Residency & security data.')
-                    ->columns()
+                    ->columns(['md' => 2])
                     ->schema([
                         TextInput::make('address')
                             ->label('Address')
@@ -793,7 +800,7 @@ class Admissions extends Component implements HasActions, HasForms
                             ->label('Postal Code')
                             ->placeholder('460242')
                             ->autocomplete()
-                            ->hintIcon('c-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
+                            ->hintIcon('s-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
                             ->nullable(),
                         Select::make('contract_type')
                             ->label('Contract Type')
@@ -804,39 +811,29 @@ class Admissions extends Component implements HasActions, HasForms
                             ->tel()
                             ->label('Phone Number')
                             ->prefix('+234')
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->placeholder('7059753934')
                             ->autocomplete()
                             ->required(),
                         TextInput::make('emergency_phone')
                             ->label('Emergency Contact Number')
                             ->tel()
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->prefix('+234')
                             ->placeholder('7059753934'),
-                        Grid::make(1)
-                            ->schema([
-                                FileUpload::make('qualifications')
-                                    ->hint(new HtmlString('Maximum of <strong>3</strong> documents'))
-                                    ->hintIcon('c-exclamation-circle', 'Images and PDF documents are currently supported.')
-                                    ->label('Qualifications')
-                                    ->multiple()
-                                    ->panelLayout('compact')
-                                    ->acceptedFileTypes(['application/pdf', 'image/png', 'image/jpeg'])
-                                    ->appendFiles()
-                                    ->previewable(false)
-                                    ->maxSize(1024)
-                                    ->maxFiles(3)
-                                    ->disk('public')
-                                    ->directory('qualifications'),
-                                TextInput::make('password')
-                                    ->label('Password')
-                                    ->placeholder('********')
-                                    ->required()
-                                    ->password()
-                                    ->revealable(),
-                            ])
-                            ->columnSpan(1),
+                        FileUpload::make('qualifications')
+                            ->hint(new HtmlString('Maximum of <strong>3</strong> documents'))
+                            ->hintIcon('s-exclamation-circle', 'Images and PDF documents are currently supported.')
+                            ->label('Qualifications')
+                            ->multiple()
+                            ->panelLayout('compact')
+                            ->acceptedFileTypes(['application/pdf', 'image/png', 'image/jpeg'])
+                            ->appendFiles()
+                            ->previewable(false)
+                            ->maxSize(1024)
+                            ->maxFiles(3)
+                            ->disk('public')
+                            ->directory('qualifications'),
                         FileUpload::make('avatar')
                             ->label('Profile Picture')
                             ->image()
@@ -844,6 +841,17 @@ class Admissions extends Component implements HasActions, HasForms
                             ->maxSize(1024)
                             ->disk('public')
                             ->directory('avatars'),
+                        TextInput::make('password')
+                            ->label('Password')
+                            ->placeholder('********')
+                            ->required()
+                            ->password()
+                            ->revealable(),
+                        Select::make('staff_type')
+                            ->label('Staff Type')
+                            ->options(\App\StaffType::class)
+                            ->required()
+                            ->native(false),
                         Textarea::make('notes')
                             ->placeholder('Type in here...')
                             ->columnSpanFull(),
@@ -852,18 +860,19 @@ class Admissions extends Component implements HasActions, HasForms
             ])
             ->model(User::class)
             ->mutateFormDataUsing(function (array $data, string $model) {
-                $date = Carbon::now()->year;
-                $hour  = Carbon::now()->hour;
-                $second  = Carbon::now()->second;
+                $date = now()->year;
+                $hour = now()->hour;
+                $second = now()->second;
 
-                $data['staff_code'] = substr($date, 0, 2) .
-                    $model::query()->find(auth()->id())->school->smil_code .
-                    substr($date, -2) . $hour . $second;
-                $data['username'] = substr($date, 0, 2) .
-                    strtolower(Str::trim($data['first_name']) .
-                        substr(Str::trim($data['last_name']), 0, 1) .
-                        substr(Str::trim($data['last_name']), -1)) .
-                    substr($date, -2) . $hour . $second;
+                $data['staff_code'] = substr($date, 0, 2).
+                    $model::query()->find(auth()->id())->school->smil_code.
+                    substr($date, -2).$hour.$second;
+                $data['username'] = substr($date, 0, 2).
+                    strtolower(Str::trim($data['first_name']).
+                        substr(Str::trim($data['last_name']), 0, 1).
+                        substr(Str::trim($data['last_name']), -1)).
+                    substr($date, -2).$hour.$second;
+
                 return $data;
             })
             ->using(function (array $data, string $model): Model {
@@ -879,7 +888,7 @@ class Admissions extends Component implements HasActions, HasForms
                     $user->gender = $data['gender'];
                     $user->dob = $data['dob'];
                     $user->religion = $data['religion'];
-                    $user->phone = '+234' . $data['phone'];
+                    $user->phone = '+234'.$data['phone'];
                     $user->address = $data['address'];
                     $user->postal_code = $data['postal_code'];
                     $user->lga_id = $data['lga_id'];
@@ -899,7 +908,7 @@ class Admissions extends Component implements HasActions, HasForms
                     $staff->position_title = $data['position_title'];
                     $staff->contract_type = $data['contract_type'];
                     $staff->marital_status = $data['marital_status'];
-                    $staff->emergency_phone = '+234' . $data['emergency_phone'];
+                    $staff->emergency_phone = '+234'.$data['emergency_phone'];
                     $staff->salary = $data['salary'];
                     $staff->bank_details = [
                         'bank_account_number' => $data['bank_account_number'],
@@ -908,6 +917,13 @@ class Admissions extends Component implements HasActions, HasForms
                     ];
                     $staff->qualifications = $data['qualifications'];
                     $staff->notes = $data['notes'];
+
+                    // Decisive Role
+                    if ($data['staff_type'] == 'teaching-staff') {
+                        $staff->staff_type = StaffRole::TEACHING_STAFF;
+                    } else {
+                        $staff->staff_type = StaffRole::NON_TEACHING_STAFF;
+                    }
                     $staff->save();
 
                     event(new Registered($user));

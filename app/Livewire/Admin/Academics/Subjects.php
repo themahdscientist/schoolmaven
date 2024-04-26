@@ -5,33 +5,32 @@ namespace App\Livewire\Admin\Academics;
 use App\Models\Grade;
 use App\Models\Subject;
 use Filament\Forms\Components\CheckboxList;
-use Livewire\Component;
-use Filament\Tables\Table;
-use Livewire\Attributes\Title;
 use Filament\Forms\Components\Grid;
-use Filament\Support\Enums\MaxWidth;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Components\Textarea;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Contracts\HasTable;
-use Illuminate\Database\Eloquent\Model;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Support\Enums\MaxWidth;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Support\Enums\ActionSize;
-use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Title;
+use Livewire\Component;
 
 #[Title('Subjects')]
 class Subjects extends Component implements HasForms, HasTable
 {
-    use InteractsWithTable;
     use InteractsWithForms;
+    use InteractsWithTable;
 
     public function table(Table $table): Table
     {
@@ -46,21 +45,25 @@ class Subjects extends Component implements HasForms, HasTable
             ->actions([
                 ActionGroup::make([
                     $this->subjectEditAction(),
-                    DeleteAction::make()
+                    DeleteAction::make(),
                 ])
-                    ->color('gray')
                     ->tooltip('Actions'),
             ])
             ->query(Subject::query())
             ->columns([
+                TextColumn::make('#')
+                    ->label('S/N')
+                    ->searchable(false)
+                    ->rowIndex(),
                 TextColumn::make('name'),
                 TextColumn::make('description')
                     ->placeholder('no description'),
                 TextColumn::make('type'),
-                TextColumn::make('user.username')
+                TextColumn::make('user.full_name')
+                    ->searchable(['first_name', 'middle_name', 'last_name'])
                     ->label('Created by'),
             ])
-            ->emptyStateIcon('c-rectangle-stack')
+            ->emptyStateIcon('s-rectangle-stack')
             ->emptyStateHeading('No subjects')
             ->emptyStateDescription('Create a subject to get started')
             ->emptyStateActions([$this->subjectCreateAction()]);
@@ -69,7 +72,7 @@ class Subjects extends Component implements HasForms, HasTable
     public function subjectCreateAction(): Action
     {
         return CreateAction::make()
-            ->icon('c-folder-plus')
+            ->icon('s-folder-plus')
             ->label('Create subject')
             ->modalWidth(MaxWidth::Medium)
             ->modalHeading('Subject registration')
@@ -102,6 +105,7 @@ class Subjects extends Component implements HasForms, HasTable
             ->model(Subject::class)
             ->mutateFormDataUsing(function (array $data) {
                 $data['user_id'] = auth()->id();
+
                 return $data;
             })
             ->using(function (array $data, string $model): Model {
@@ -144,11 +148,11 @@ class Subjects extends Component implements HasForms, HasTable
     public function gradeSubjectLink(): Action
     {
         return CreateAction::make('grade_subject')
-            ->icon('c-link')
-            ->label('Link a subject')
+            ->icon('s-link')
+            ->label('Link a grade')
             ->modalWidth(MaxWidth::Medium)
             ->modalHeading('Grade Subject Linking')
-            ->modalDescription('Link a subject to a grade')
+            ->modalDescription('Link a grade to a subject')
             ->modalSubmitActionLabel('Link')
             ->createAnother(false)
             ->form([
@@ -171,14 +175,14 @@ class Subjects extends Component implements HasForms, HasTable
                     $grades = $model::query()->findMany($data['grades']);
                     $subjects = Subject::query()->findMany($data['subjects']);
 
-                    foreach ($grades as $grade) {
+                    $grades->each(function (Grade $grade) use ($subjects) {
                         $grade->subjects()->syncWithoutDetaching($subjects);
-                    }
+                    });
 
-                    return $grade;
+                    return $grades->first();
                 });
             })
             ->successNotificationTitle('Linkage success')
-            ->successRedirectUrl(route('app.' . session('role') . '.academics.grades'));
+            ->successRedirectUrl(route('app.'.session('role').'.academics.grades'));
     }
 }

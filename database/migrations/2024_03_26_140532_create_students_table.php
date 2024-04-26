@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('guardian_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('grade_id')->constrained()->nullOnDelete();
+            $table->foreignId('grade_id')->nullable()->constrained()->nullOnDelete();
             $table->string('admission_number')->unique();
             $table->enum('blood_group', ['A', 'B', 'AB', 'O']);
             $table->enum('rhesus_factor', ['Rh+', 'Rh-']);

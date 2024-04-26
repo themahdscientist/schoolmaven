@@ -2,15 +2,15 @@
 
 namespace App\Livewire\Auth;
 
-use Livewire\Component;
 use App\Rules\IdentityExists;
-use Livewire\Attributes\Title;
-use Livewire\Attributes\Validate;
+use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
+use DanHarrin\LivewireRateLimiting\WithRateLimiting;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
-use DanHarrin\LivewireRateLimiting\WithRateLimiting;
-use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
-use Filament\Notifications\Notification;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Validate;
+use Livewire\Component;
 
 #[Title('Login')]
 class Login extends Component
@@ -37,7 +37,7 @@ class Login extends Component
         } catch (TooManyRequestsException $exception) {
             $this->error = "Too many failed login attempts! Please wait another {$exception->secondsUntilAvailable} seconds before retrying.";
             throw ValidationException::withMessages([
-                'identity' => "Cross-check your login credentials."
+                'identity' => 'Cross-check your login credentials.',
             ]);
         }
 
@@ -52,11 +52,11 @@ class Login extends Component
 
             Notification::make()
                 ->title('Login Success')
-                ->body('Welcome back ' . Auth::user()->first_name . '!')
+                ->body('Welcome back '.Auth::user()->first_name.'!')
                 ->success()
                 ->send();
 
-            return $this->redirectRoute('app.' . Auth::user()->roles->first()->name . '.dashboard', navigate: true);
+            return $this->redirectRoute('app.'.Auth::user()->roles->first()->name.'.dashboard', navigate: true);
         }
 
         $this->error = 'Invalid credentials';

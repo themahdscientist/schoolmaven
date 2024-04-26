@@ -1,32 +1,37 @@
 <?php
 
-use App\Livewire\Auth\Login;
-use App\Livewire\Admin\Staff;
-use App\Livewire\Admin\Profile;
-use App\Livewire\Auth\Register;
-use App\Livewire\Website\Index;
-use App\Livewire\Admin\Finances;
-use App\Livewire\Admin\Settings;
-use App\Livewire\Admin\Students;
 use App\Livewire\Admin\Academics;
 use App\Livewire\Admin\Academics\Grades;
 use App\Livewire\Admin\Academics\Subjects;
 use App\Livewire\Admin\Admissions;
+use App\Livewire\Admin\Dashboard as AdminDashboard;
+use App\Livewire\Admin\Finances;
 use App\Livewire\Admin\Guardians;
+use App\Livewire\Admin\Profile;
+use App\Livewire\Admin\Settings;
+use App\Livewire\Admin\Staff;
+use App\Livewire\Admin\Students;
+use App\Livewire\Auth\ForgotPassword;
+use App\Livewire\Auth\Login;
+use App\Livewire\Auth\Register;
+use App\Livewire\Auth\ResetPassword;
 use App\Livewire\Auth\SelectRole;
 use App\Livewire\Auth\VerifyEmail;
-use App\Livewire\Student\Dashboard as StudentDashboard;
-use App\Livewire\Auth\ResetPassword;
-use App\Livewire\Auth\ForgotPassword;
-use Illuminate\Support\Facades\Route;
-use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Guardian\Dashboard as GuardianDashboard;
 use App\Livewire\Guardian\Profile as GuardianProfile;
 use App\Livewire\Guardian\Wards;
+use App\Livewire\Staff\Academics as StaffAcademics;
+use App\Livewire\Staff\Academics\Grades as StaffGrades;
+use App\Livewire\Staff\Academics\Students as StaffStudents;
 use App\Livewire\Staff\Dashboard as StaffDashboard;
 use App\Livewire\Staff\Profile as StaffProfile;
+use App\Livewire\Student\Academics as StudentAcademics;
+use App\Livewire\Student\Academics\Subjects as StudentSubjects;
+use App\Livewire\Student\Dashboard as StudentDashboard;
 use App\Livewire\Student\Profile as StudentProfile;
+use App\Livewire\Website\Index;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Support\Facades\Route;
 
 // Main Domain
 Route::get('', Index::class)->name('index');
@@ -87,10 +92,19 @@ Route::name('app')->group(function () {
         });
         Route::middleware('role:student')->prefix('student')->name('.student')->group(function () {
             Route::get('dashboard', StudentDashboard::class)->name('.dashboard');
+            Route::prefix('academics')->name('.academics')->group(function () {
+                Route::get('', StudentAcademics::class);
+                Route::get('subjects', StudentSubjects::class)->name('.subjects');
+            });
             Route::get('profile', StudentProfile::class)->name('.profile');
         });
         Route::middleware('role:staff')->prefix('staff')->name('.staff')->group(function () {
             Route::get('dashboard', StaffDashboard::class)->name('.dashboard');
+            Route::prefix('academics')->name('.academics')->group(function () {
+                Route::get('', StaffAcademics::class);
+                Route::get('grades', StaffGrades::class)->name('.grades');
+                Route::get('students', StaffStudents::class)->name('.students');
+            });
             Route::get('profile', StaffProfile::class)->name('.profile');
         });
         Route::middleware('role:guardian')->prefix('guardian')->name('.guardian')->group(function () {

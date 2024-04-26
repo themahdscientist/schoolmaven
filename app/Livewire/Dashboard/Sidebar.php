@@ -11,17 +11,21 @@ class Sidebar extends Component
 
     public function mount()
     {
-        $this->user = auth()->user()->load('school');
-        // $this->user = auth()->user()->load('roles:id,name');
+        $this->user = User::query()->findOrFail(auth()->id())->load('school');
     }
 
     public function grades()
     {
-        return $this->redirectRoute('app.admin.academics.grades', navigate: true);
+        return $this->redirectRoute('app.'.session('role').'.academics.grades', navigate: true);
     }
 
     public function subjects()
     {
-        return $this->redirectRoute('app.admin.academics.subjects', navigate: true);
+        return $this->redirectRoute('app.'.session('role').'.academics.subjects', navigate: true);
+    }
+
+    public function students()
+    {
+        return $this->redirectRoute('app.'.session('role').'.academics.students', navigate: true);
     }
 }

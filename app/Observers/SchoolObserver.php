@@ -20,7 +20,9 @@ class SchoolObserver
      */
     public function updated(School $school): void
     {
-        if ($school->isDirty('logo')) Storage::disk('public')->delete($school->getOriginal('logo'));
+        if ($school->isDirty('logo') && $school->getOriginal('logo')) {
+            Storage::disk('public')->delete($school->getOriginal('logo'));
+        }
     }
 
     /**
@@ -28,7 +30,9 @@ class SchoolObserver
      */
     public function deleted(School $school): void
     {
-        if (!is_null($school->logo)) Storage::disk('public')->delete($school->logo);
+        if (! is_null($school->logo)) {
+            Storage::disk('public')->delete($school->logo);
+        }
     }
 
     /**

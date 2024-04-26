@@ -2,59 +2,58 @@
 
 namespace App\Livewire\Admin;
 
-use Carbon\Carbon;
+use App\Models\Country;
+use App\Models\Grade;
+use App\Models\Guardian;
 use App\Models\Lga;
 use App\Models\Role;
-use App\Models\User;
-use App\Models\Grade;
 use App\Models\State;
-use App\Models\Country;
-use App\Models\Guardian;
 use App\Models\Student;
+use App\Models\User;
 use Filament\Forms\Components\Actions;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
-use Livewire\Component;
-use Filament\Tables\Table;
-use Illuminate\Support\Str;
-use Livewire\Attributes\Title;
-use Illuminate\Support\Collection;
-use Filament\Support\Enums\MaxWidth;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Contracts\HasForms;
-use Illuminate\Auth\Events\Registered;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Contracts\HasTable;
-use Illuminate\Database\Eloquent\Model;
-use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
-use Filament\Tables\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
-use Filament\Tables\Actions\CreateAction;
-use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Wizard\Step;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Support\Enums\IconSize;
+use Filament\Support\Enums\MaxWidth;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Actions\CreateAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\ActionsPosition;
+use Filament\Tables\Table;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Title;
+use Livewire\Component;
 
 #[Title('Student')]
 class Students extends Component implements HasForms, HasTable
 {
-    use InteractsWithTable;
     use InteractsWithForms;
+    use InteractsWithTable;
 
     public function table(Table $table): Table
     {
@@ -62,10 +61,12 @@ class Students extends Component implements HasForms, HasTable
             ->heading('Students')
             ->description('Manage your students here.')
             ->striped()
-            ->headerActions([$this->studentCreateAction()])
+            ->headerActions([
+                $this->studentCreateAction()
+                ])
             ->bulkActions([
                 BulkAction::make('link_a_guardian')
-                    ->icon('c-link')
+                    ->icon('s-link')
                     ->modalWidth(MaxWidth::Medium)
                     ->modalHeading('Student-Guardian Linking')
                     ->modalDescription('Link a guardian to a student')
@@ -76,13 +77,15 @@ class Students extends Component implements HasForms, HasTable
                             ->options(User::query()->whereHas('roles', function (Builder $query) {
                                 $query->where('roles.id', Role::GUARDIAN);
                             })
-                                ->pluck('last_name', 'id'))
+                                ->get()
+                                ->pluck('full_name', 'id'))
                             ->required()
                             ->searchable()
                             ->native(false),
                     ])
                     ->mutateFormDataUsing(function (array $data) {
                         $data['guardian_id'] = Guardian::query()->where('user_id', $data['guardian_id'])->value('id');
+
                         return $data;
                     })
                     ->action(function (EloquentCollection $records, array $data) {
@@ -98,7 +101,7 @@ class Students extends Component implements HasForms, HasTable
                             ->success()
                             ->send();
                     })
-                    ->deselectRecordsAfterCompletion()
+                    ->deselectRecordsAfterCompletion(),
             ])
             ->selectCurrentPageOnly()
             ->actions(
@@ -112,12 +115,15 @@ class Students extends Component implements HasForms, HasTable
                 $query->where('roles.id', Role::STUDENT);
             }))
             ->columns([
+                TextColumn::make('#')
+                    ->label('S/N')
+                    ->searchable(false)
+                    ->rowIndex(),
                 ImageColumn::make('avatar')
                     ->label('')
                     ->circular(),
-                TextColumn::make('first_name')
-                    ->label('Name')
-                    ->formatStateUsing(fn ($state, User $record) => $state . ' ' . $record->last_name)
+                TextColumn::make('full_name')
+                    ->label('Full Name')
                     ->searchable(['first_name', 'middle_name', 'last_name'])
                     ->sortable(),
                 TextColumn::make('student.admission_number')
@@ -129,7 +135,7 @@ class Students extends Component implements HasForms, HasTable
                     ->sortable(),
                 TextColumn::make('student.guardian.user.first_name')
                     ->label('Guardian')
-                    ->formatStateUsing(fn ($state, $record) => $state . ' ' . $record->student->guardian->user->last_name)
+                    ->formatStateUsing(fn ($state, $record) => $state.' '.$record->student->guardian->user->last_name)
                     ->action(
                         ViewAction::make('guardian')
                             ->modalWidth(MaxWidth::FitContent)
@@ -157,7 +163,7 @@ class Students extends Component implements HasForms, HasTable
                                                     ->label('Marital Status'),
                                                 TextInput::make('student.guardian.user.phone')
                                                     ->formatStateUsing(fn ($state) => Str::substr($state, 4))
-                                                    ->prefixIcon('c-phone')
+                                                    ->prefixIcon('s-phone')
                                                     ->prefix('+234'),
                                                 TextInput::make('student.guardian.occupation'),
                                                 TextInput::make('student.guardian.guardian_code')
@@ -185,7 +191,7 @@ class Students extends Component implements HasForms, HasTable
                     ->color(fn (User $record): string => \App\StudentStatus::from($record->student->status)->getColor())
                     ->tooltip(fn (User $record): string => \App\StudentStatus::from($record->student->status)->getLabel()),
             ])
-            ->emptyStateIcon('c-user-group')
+            ->emptyStateIcon('s-user-group')
             ->emptyStateHeading('No students')
             ->emptyStateDescription('Create a student to get started')
             ->emptyStateActions([$this->studentCreateAction()]);
@@ -194,7 +200,7 @@ class Students extends Component implements HasForms, HasTable
     public function studentCreateAction(): Action
     {
         return CreateAction::make()
-            ->icon('c-document-plus')
+            ->icon('s-document-plus')
             ->label('New Student')
             ->modalWidth(MaxWidth::FitContent)
             ->closeModalByClickingAway(false)
@@ -237,7 +243,7 @@ class Students extends Component implements HasForms, HasTable
                             ->required()
                             ->maxLength(255)
                             ->unique('users', 'email')
-                            ->hintIcon('c-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
+                            ->hintIcon('s-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
                         Select::make('gender')
                             ->label('Gender')
                             ->options([
@@ -327,20 +333,20 @@ class Students extends Component implements HasForms, HasTable
                             ->label('Postal Code')
                             ->placeholder('460242')
                             ->autocomplete()
-                            ->hintIcon('c-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
+                            ->hintIcon('s-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
                             ->nullable(),
                         TextInput::make('phone')
                             ->tel()
                             ->label('Phone Number')
                             ->prefix('+234')
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->placeholder('7059753934')
                             ->autocomplete()
                             ->required(),
                         TextInput::make('emergency_phone')
                             ->label('Emergency Contact Number')
                             ->tel()
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->prefix('+234')
                             ->placeholder('7059753934'),
                         Select::make('guardian_id')
@@ -349,7 +355,8 @@ class Students extends Component implements HasForms, HasTable
                             ->options(User::query()->whereHas('roles', function (Builder $query) {
                                 $query->where('roles.id', Role::GUARDIAN);
                             })
-                                ->pluck('last_name', 'id'))
+                                ->get()
+                                ->pluck('full_name', 'id'))
                             ->searchable()
                             ->nullable()
                             ->native(false),
@@ -394,14 +401,14 @@ class Students extends Component implements HasForms, HasTable
                             ->imageCropAspectRatio('1:1')
                             ->maxSize(1024)
                             ->disk('public')
-                            ->directory('avatars')
-                    ])
+                            ->directory('avatars'),
+                    ]),
             ])
             ->model(User::class)
             ->mutateFormDataUsing(function (array $data, string $model) {
-                $date = Carbon::now()->year;
-                $hour  = Carbon::now()->hour;
-                $second  = Carbon::now()->second;
+                $date = now()->year;
+                $hour = now()->hour;
+                $second = now()->second;
                 $school = $model::query()->find(auth()->id())->school;
 
                 $last_student = Student::query()->whereHas('user.school', function (Builder $query) use ($school) {
@@ -417,13 +424,14 @@ class Students extends Component implements HasForms, HasTable
                 $first = substr($date, 0, 2);
                 $last = substr($date, -2);
 
-                $data['admission_number'] = $first . $code . $serial . $last;
-                $data['username'] = substr($date, 0, 2) .
-                    strtolower(Str::trim($data['first_name']) .
-                        substr(Str::trim($data['last_name']), 0, 1) .
-                        substr(Str::trim($data['last_name']), -1)) .
-                    substr($date, -2) . $hour . $second;
+                $data['admission_number'] = $first.$code.$serial.$last;
+                $data['username'] = substr($date, 0, 2).
+                    strtolower(Str::trim($data['first_name']).
+                        substr(Str::trim($data['last_name']), 0, 1).
+                        substr(Str::trim($data['last_name']), -1)).
+                    substr($date, -2).$hour.$second;
                 $data['guardian_id'] = Guardian::query()->where('user_id', $data['guardian_id'])->value('id');
+
                 return $data;
             })
             ->using(function (array $data, string $model): Model {
@@ -439,7 +447,7 @@ class Students extends Component implements HasForms, HasTable
                     $user->gender = $data['gender'];
                     $user->dob = $data['dob'];
                     $user->religion = $data['religion'];
-                    $user->phone = '+234' . $data['phone'];
+                    $user->phone = '+234'.$data['phone'];
                     $user->address = $data['address'];
                     $user->postal_code = $data['postal_code'];
                     $user->lga_id = $data['lga_id'];
@@ -460,7 +468,7 @@ class Students extends Component implements HasForms, HasTable
                     $student->admission_number = $data['admission_number'];
                     $student->blood_group = $data['blood_group'];
                     $student->rhesus_factor = $data['rhesus_factor'];
-                    $student->emergency_phone = '+234' . $data['emergency_phone'];
+                    $student->emergency_phone = '+234'.$data['emergency_phone'];
                     $student->save();
 
                     event(new Registered($user));
@@ -525,7 +533,7 @@ class Students extends Component implements HasForms, HasTable
                             ->placeholder('tms@skoolmaven.com')
                             ->required()
                             ->maxLength(255)
-                            ->hintIcon('c-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
+                            ->hintIcon('s-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
                         Select::make('gender')
                             ->label('Gender')
                             ->options([
@@ -609,14 +617,14 @@ class Students extends Component implements HasForms, HasTable
                             ->label('Postal Code')
                             ->placeholder('460242')
                             ->autocomplete()
-                            ->hintIcon('c-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
+                            ->hintIcon('s-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
                             ->nullable(),
                         TextInput::make('phone')
                             ->formatStateUsing(fn ($state) => Str::substr($state, 4))
                             ->label('Phone Number')
                             ->tel()
                             ->prefix('+234')
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->placeholder('7059753934')
                             ->autocomplete()
                             ->required(),
@@ -624,7 +632,7 @@ class Students extends Component implements HasForms, HasTable
                             ->formatStateUsing(fn ($state) => Str::substr($state, 4))
                             ->label('Emergency Contact Number')
                             ->tel()
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->prefix('+234')
                             ->placeholder('7059753934')
                             ->autocomplete()
@@ -634,7 +642,8 @@ class Students extends Component implements HasForms, HasTable
                             ->options(User::query()->whereHas('roles', function (Builder $query) {
                                 $query->where('roles.id', Role::GUARDIAN);
                             })
-                                ->pluck('last_name', 'id'))
+                                ->get()
+                                ->pluck('full_name', 'id'))
                             ->searchable()
                             ->nullable()
                             ->native(false),
@@ -680,19 +689,14 @@ class Students extends Component implements HasForms, HasTable
                             ->directory('avatars'),
                         Actions::make([
                             Actions\Action::make('Change Password')
-                                ->icon('c-lock-closed')
+                                ->icon('s-lock-closed')
                                 ->iconSize(IconSize::Small)
                                 ->modalWidth(MaxWidth::FitContent)
                                 ->modalHeading('Change Password')
-                                ->modalDescription('Confirm your old password before creating a new one')
+                                ->modalDescription('Create a new password for this student')
                                 ->modalSubmitActionLabel('Change')
                                 ->form([
                                     TextInput::make('password')
-                                        ->label('Current Password')
-                                        ->password()
-                                        ->revealable()
-                                        ->required(),
-                                    TextInput::make('new_password')
                                         ->label('New Password')
                                         ->password()
                                         ->revealable()
@@ -706,34 +710,25 @@ class Students extends Component implements HasForms, HasTable
                                         ->send();
                                 })
                                 ->afterFormValidated(function (array $data, User $record) {
-                                    if (Hash::check($data['password'], $record->password)) {
-                                        $record->forceFill([
-                                            'password' => Hash::make($data['new_password'])
-                                        ]);
-                                        $record->save();
+                                    $record->forceFill([
+                                        'password' => Hash::make($data['password']),
+                                    ]);
+                                    $record->save();
 
-                                        Notification::make()
-                                            ->title('Password Updated')
-                                            ->success()
-                                            ->send();
-                                    } else {
-                                        $this->form->fill();
-                                        Notification::make()
-                                            ->title('Password Update Declined')
-                                            ->body('The password do not match our records')
-                                            ->danger()
-                                            ->send();
-                                    }
-                                })
+                                    Notification::make()
+                                        ->title('Password Updated')
+                                        ->success()
+                                        ->send();
+                                }),
                         ])
                             ->alignCenter()
                             ->verticallyAlignCenter(),
-                    ])
+                    ]),
             ])
             ->fillForm(fn (User $record) => $record->toArray())
             ->mutateFormDataUsing(function (array $data) {
-                $data['student']['emergency_phone'] = '+234' . $data['student']['emergency_phone'];
-                $data['phone'] = '+234' . $data['phone'];
+                $data['student']['emergency_phone'] = '+234'.$data['student']['emergency_phone'];
+                $data['phone'] = '+234'.$data['phone'];
                 $data['student']['guardian_id'] = Guardian::query()->where('user_id', $data['student']['guardian']['user']['id'])->value('id');
                 unset($data['student']['guardian']);
 

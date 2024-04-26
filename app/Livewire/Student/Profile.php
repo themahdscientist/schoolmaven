@@ -2,34 +2,34 @@
 
 namespace App\Livewire\Student;
 
+use App\Models\Country;
+use App\Models\Grade;
+use App\Models\Guardian;
 use App\Models\Lga;
 use App\Models\Role;
-use App\Models\User;
-use App\Models\Grade;
 use App\Models\State;
-use App\Models\Country;
-use App\Models\Guardian;
-use Livewire\Component;
-use Filament\Forms\Form;
-use Illuminate\Support\Str;
-use Livewire\Attributes\Title;
-use Filament\Support\Enums\IconSize;
-use Filament\Support\Enums\MaxWidth;
-use Illuminate\Support\Facades\Hash;
-use Filament\Forms\Components\Select;
+use App\Models\User;
 use Filament\Forms\Components\Actions;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Split;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Notifications\Notification;
+use Filament\Support\Enums\IconSize;
+use Filament\Support\Enums\MaxWidth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Title;
+use Livewire\Component;
 
 #[Title('Profile')]
 class Profile extends Component implements HasForms
@@ -37,6 +37,7 @@ class Profile extends Component implements HasForms
     use InteractsWithForms;
 
     public ?array $data = [];
+
     public User $record;
 
     public function mount(): void
@@ -89,7 +90,7 @@ class Profile extends Component implements HasForms
                                 ->placeholder('tms@skoolmaven.com')
                                 ->required()
                                 ->maxLength(255)
-                                ->hintIcon('c-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
+                                ->hintIcon('s-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
                             Select::make('gender')
                                 ->label('Gender')
                                 ->options([
@@ -171,14 +172,14 @@ class Profile extends Component implements HasForms
                                 ->label('Postal Code')
                                 ->placeholder('460242')
                                 ->autocomplete()
-                                ->hintIcon('c-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
+                                ->hintIcon('s-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
                                 ->nullable(),
                             TextInput::make('phone')
                                 ->formatStateUsing(fn ($state) => Str::substr($state, 4))
                                 ->label('Phone Number')
                                 ->tel()
                                 ->prefix('+234')
-                                ->prefixIcon('c-phone')
+                                ->prefixIcon('s-phone')
                                 ->placeholder('7059753934')
                                 ->autocomplete()
                                 ->required(),
@@ -186,7 +187,7 @@ class Profile extends Component implements HasForms
                                 ->formatStateUsing(fn ($state) => Str::substr($state, 4))
                                 ->label('Emergency Contact Number')
                                 ->tel()
-                                ->prefixIcon('c-phone')
+                                ->prefixIcon('s-phone')
                                 ->prefix('+234')
                                 ->placeholder('7059753934')
                                 ->autocomplete()
@@ -196,7 +197,8 @@ class Profile extends Component implements HasForms
                                 ->options(User::query()->whereHas('roles', function (Builder $query) {
                                     $query->where('roles.id', Role::GUARDIAN);
                                 })
-                                    ->pluck('last_name', 'id'))
+                                    ->get()
+                                    ->pluck('full_name', 'id'))
                                 ->disabled()
                                 ->searchable()
                                 ->nullable()
@@ -236,7 +238,7 @@ class Profile extends Component implements HasForms
                         ]),
                     Section::make('Security')
                         ->description('Change your password and profile picture here')
-                        ->icon('c-shield-check')
+                        ->icon('s-shield-check')
                         ->schema([
                             FileUpload::make('avatar')
                                 ->label('Passport')
@@ -251,7 +253,7 @@ class Profile extends Component implements HasForms
 
                             Actions::make([
                                 Actions\Action::make('Change Password')
-                                    ->icon('c-lock-closed')
+                                    ->icon('s-lock-closed')
                                     ->iconSize(IconSize::Small)
                                     ->modalWidth(MaxWidth::FitContent)
                                     ->modalHeading('Change Password')
@@ -279,7 +281,7 @@ class Profile extends Component implements HasForms
                                     ->afterFormValidated(function (array $data, User $record) {
                                         if (Hash::check($data['password'], $record->password)) {
                                             $record->forceFill([
-                                                'password' => Hash::make($data['new_password'])
+                                                'password' => Hash::make($data['new_password']),
                                             ]);
                                             $record->save();
 
@@ -295,14 +297,14 @@ class Profile extends Component implements HasForms
                                                 ->danger()
                                                 ->send();
                                         }
-                                    })
+                                    }),
                             ])
                                 ->alignCenter()
                                 ->verticallyAlignCenter(),
                         ])
                         ->grow(false)
-                        ->collapsible()
-                ])
+                        ->collapsible(),
+                ]),
             ])
             ->statePath('data')
             ->model($this->record);
@@ -311,8 +313,8 @@ class Profile extends Component implements HasForms
     public function save(): void
     {
         $data = $this->form->getState();
-        $data['phone'] = '+234' . $data['phone'];
-        $data['student']['emergency_phone'] = '+234' . $data['student']['emergency_phone'];
+        $data['phone'] = '+234'.$data['phone'];
+        $data['student']['emergency_phone'] = '+234'.$data['student']['emergency_phone'];
         $data['student']['guardian_id'] = Guardian::query()->where('user_id', $data['student']['guardian']['user']['id'])->value('id');
         unset($data['student']['guardian']);
 

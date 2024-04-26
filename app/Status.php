@@ -22,8 +22,8 @@ enum Status: string implements HasColor, HasIcon, HasLabel
     public function getIcon(): ?string
     {
         return match ($this) {
-            self::Active => 'c-check-circle',
-            self::Inactive => 'c-x-circle',
+            self::Active => 's-check-circle',
+            self::Inactive => 's-x-circle',
         };
     }
 

@@ -36,8 +36,9 @@
     </main>
     <livewire:database-notifications />
     @endauth
-
+    
     <livewire:notifications />
+    <livewire:wire-elements-modal />
 
     @livewireScriptConfig
     @filamentScripts

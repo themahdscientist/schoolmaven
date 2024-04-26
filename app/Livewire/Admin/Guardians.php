@@ -2,58 +2,56 @@
 
 namespace App\Livewire\Admin;
 
-use Carbon\Carbon;
+use App\Models\Country;
+use App\Models\Guardian;
 use App\Models\Lga;
 use App\Models\Role;
-use App\Models\User;
 use App\Models\State;
-use App\Models\Country;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
-use Livewire\Component;
-use App\Models\Guardian;
 use App\Models\Student;
+use App\Models\User;
 use Filament\Forms\Components\Actions;
-use Filament\Tables\Table;
-use Illuminate\Support\Str;
-use Livewire\Attributes\Title;
-use Illuminate\Support\Collection;
-use Filament\Support\Enums\MaxWidth;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Contracts\HasForms;
-use Illuminate\Auth\Events\Registered;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Contracts\HasTable;
-use Illuminate\Database\Eloquent\Model;
-use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
-use Filament\Tables\Actions\CreateAction;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Wizard\Step;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Support\Enums\IconSize;
+use Filament\Support\Enums\MaxWidth;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\ActionsPosition;
+use Filament\Tables\Table;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Title;
+use Livewire\Component;
 
 #[Title('Guardians')]
 class Guardians extends Component implements HasForms, HasTable
 {
-    use InteractsWithTable;
     use InteractsWithForms;
+    use InteractsWithTable;
 
     public function table(Table $table): Table
     {
@@ -76,12 +74,16 @@ class Guardians extends Component implements HasForms, HasTable
                 $query->where('roles.id', Role::GUARDIAN);
             }))
             ->columns([
+                TextColumn::make('#')
+                    ->label('S/N')
+                    ->searchable(false)
+                    ->rowIndex(),
                 ImageColumn::make('avatar')
                     ->label('')
                     ->circular(),
-                TextColumn::make('first_name')
-                    ->label('Name')
-                    ->formatStateUsing(fn ($state, $record) => $state . ' ' . $record->last_name)
+                TextColumn::make('full_name')
+                    ->label('Full Name')
+                    ->searchable(['first_name', 'middle_name', 'last_name'])
                     ->sortable(),
                 TextColumn::make('students_count')
                     ->label('No. of Wards')
@@ -106,7 +108,7 @@ class Guardians extends Component implements HasForms, HasTable
                     ->color(fn (User $record): string => \App\StudentStatus::from($record->status)->getColor())
                     ->tooltip(fn (User $record): string => \App\StudentStatus::from($record->status)->getLabel()),
             ])
-            ->emptyStateIcon('c-user-group')
+            ->emptyStateIcon('s-user-group')
             ->emptyStateHeading('No guardians')
             ->emptyStateDescription('Create a guardian to get started')
             ->emptyStateActions([$this->guardianCreateAction()]);
@@ -115,7 +117,7 @@ class Guardians extends Component implements HasForms, HasTable
     public function guardianCreateAction(): Action
     {
         return CreateAction::make()
-            ->icon('c-document-plus')
+            ->icon('s-document-plus')
             ->label('New Guardian')
             ->modalWidth(MaxWidth::FitContent)
             ->closeModalByClickingAway(false)
@@ -158,7 +160,7 @@ class Guardians extends Component implements HasForms, HasTable
                             ->required()
                             ->maxLength(255)
                             ->unique('users', 'email')
-                            ->hintIcon('c-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
+                            ->hintIcon('s-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
                         Select::make('gender')
                             ->label('Gender')
                             ->options([
@@ -256,13 +258,13 @@ class Guardians extends Component implements HasForms, HasTable
                             ->label('Postal Code')
                             ->placeholder('460242')
                             ->autocomplete()
-                            ->hintIcon('c-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
+                            ->hintIcon('s-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
                             ->nullable(),
                         TextInput::make('phone')
                             ->tel()
                             ->label('Phone Number')
                             ->prefix('+234')
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->placeholder('7059753934')
                             ->autocomplete()
                             ->required(),
@@ -278,23 +280,24 @@ class Guardians extends Component implements HasForms, HasTable
                             ->imageCropAspectRatio('1:1')
                             ->maxSize(1024)
                             ->disk('public')
-                            ->directory('avatars')
-                    ])
+                            ->directory('avatars'),
+                    ]),
             ])
             ->model(User::class)
             ->mutateFormDataUsing(function (array $data, string $model) {
-                $date = Carbon::now()->year;
-                $hour  = Carbon::now()->hour;
-                $second  = Carbon::now()->second;
+                $date = now()->year;
+                $hour = now()->hour;
+                $second = now()->second;
 
-                $data['guardian_code'] = substr($date, 0, 2) .
-                    $model::query()->find(auth()->id())->school->smil_code .
-                    substr($date, -2) . $hour . $second;
-                $data['username'] = substr($date, 0, 2) .
-                    strtolower(Str::trim($data['first_name']) .
-                        substr(Str::trim($data['last_name']), 0, 1) .
-                        substr(Str::trim($data['last_name']), -1)) .
-                    substr($date, -2) . $hour . $second;
+                $data['guardian_code'] = substr($date, 0, 2).
+                    $model::query()->find(auth()->id())->school->smil_code.
+                    substr($date, -2).$hour.$second;
+                $data['username'] = substr($date, 0, 2).
+                    strtolower(Str::trim($data['first_name']).
+                        substr(Str::trim($data['last_name']), 0, 1).
+                        substr(Str::trim($data['last_name']), -1)).
+                    substr($date, -2).$hour.$second;
+
                 return $data;
             })
             ->using(function (array $data, string $model): Model {
@@ -310,7 +313,7 @@ class Guardians extends Component implements HasForms, HasTable
                     $user->gender = $data['gender'];
                     $user->dob = $data['dob'];
                     $user->religion = $data['religion'];
-                    $user->phone = '+234' . $data['phone'];
+                    $user->phone = '+234'.$data['phone'];
                     $user->address = $data['address'];
                     $user->postal_code = $data['postal_code'];
                     $user->lga_id = $data['lga_id'];
@@ -393,7 +396,7 @@ class Guardians extends Component implements HasForms, HasTable
                             ->placeholder('tms@skoolmaven.com')
                             ->required()
                             ->maxLength(255)
-                            ->hintIcon('c-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
+                            ->hintIcon('s-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
                         Select::make('gender')
                             ->label('Gender')
                             ->options([
@@ -491,32 +494,27 @@ class Guardians extends Component implements HasForms, HasTable
                             ->label('Postal Code')
                             ->placeholder('460242')
                             ->autocomplete()
-                            ->hintIcon('c-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
+                            ->hintIcon('s-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
                             ->nullable(),
                         TextInput::make('phone')
                             ->formatStateUsing(fn ($state) => Str::substr($state, 4))
                             ->tel()
                             ->label('Phone Number')
                             ->prefix('+234')
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->placeholder('7059753934')
                             ->autocomplete()
                             ->required(),
                         Actions::make([
                             Actions\Action::make('Change Password')
-                                ->icon('c-lock-closed')
+                                ->icon('s-lock-closed')
                                 ->iconSize(IconSize::Small)
                                 ->modalWidth(MaxWidth::FitContent)
                                 ->modalHeading('Change Password')
-                                ->modalDescription('Confirm your old password before creating a new one')
+                                ->modalDescription('Create a new password for this guardian')
                                 ->modalSubmitActionLabel('Change')
                                 ->form([
                                     TextInput::make('password')
-                                        ->label('Current Password')
-                                        ->password()
-                                        ->revealable()
-                                        ->required(),
-                                    TextInput::make('new_password')
                                         ->label('New Password')
                                         ->password()
                                         ->revealable()
@@ -530,25 +528,16 @@ class Guardians extends Component implements HasForms, HasTable
                                         ->send();
                                 })
                                 ->afterFormValidated(function (array $data, User $record) {
-                                    if (Hash::check($data['password'], $record->password)) {
-                                        $record->forceFill([
-                                            'password' => Hash::make($data['new_password'])
-                                        ]);
-                                        $record->save();
+                                    $record->forceFill([
+                                        'password' => Hash::make($data['password']),
+                                    ]);
+                                    $record->save();
 
-                                        Notification::make()
-                                            ->title('Password Updated')
-                                            ->success()
-                                            ->send();
-                                    } else {
-                                        $this->form->fill();
-                                        Notification::make()
-                                            ->title('Password Update Declined')
-                                            ->body('The password do not match our records')
-                                            ->danger()
-                                            ->send();
-                                    }
-                                })
+                                    Notification::make()
+                                        ->title('Password Updated')
+                                        ->success()
+                                        ->send();
+                                }),
                         ])
                             ->alignCenter()
                             ->verticallyAlignCenter(),
@@ -558,12 +547,12 @@ class Guardians extends Component implements HasForms, HasTable
                             ->imageCropAspectRatio('1:1')
                             ->maxSize(1024)
                             ->disk('public')
-                            ->directory('avatars')
-                    ])
+                            ->directory('avatars'),
+                    ]),
             ])
             ->fillForm(fn (User $record) => $record->toArray())
             ->mutateFormDataUsing(function (array $data) {
-                $data['phone'] = '+234' . $data['phone'];
+                $data['phone'] = '+234'.$data['phone'];
 
                 return $data;
             })
@@ -584,7 +573,7 @@ class Guardians extends Component implements HasForms, HasTable
     {
         return ViewAction::make('wards')
             ->label('Wards')
-            ->icon('c-users')
+            ->icon('s-users')
             ->color('gray')
             ->button()
             ->modalWidth(MaxWidth::FitContent)
@@ -594,10 +583,10 @@ class Guardians extends Component implements HasForms, HasTable
             ->form(function (User $record) {
                 return $record->students->map(function (Student $student) {
                     return Section::make(new HtmlString(
-                        '<p class="uppercase font-bold">' . $student->user->first_name . ' ' . $student->user->middle_name . ' ' . $student->user->last_name . '</p>'
+                        '<p class="uppercase font-bold">'.$student->user->first_name.' '.$student->user->middle_name.' '.$student->user->last_name.'</p>'
                     ))
                         ->description('Click to toggle collapse.')
-                        ->icon('c-user')
+                        ->icon('s-user')
                         ->schema([
                             TextInput::make('admission_number')
                                 ->label('Admission Number')
@@ -617,7 +606,13 @@ class Guardians extends Component implements HasForms, HasTable
                             TextInput::make('student_phone')
                                 ->label('Phone')
                                 ->placeholder($student->user->phone)
-                                ->prefixIcon('c-phone'),
+                                ->prefixIcon('s-phone'),
+                            TextInput::make('blood_group')
+                                ->label('Blood Group')
+                                ->placeholder($student->blood_group),
+                            TextInput::make('rhesus_factor')
+                                ->label('Rhesus Factor')
+                                ->placeholder($student->rhesus_factor),
                         ])
                         ->columns()
                         ->collapsed();

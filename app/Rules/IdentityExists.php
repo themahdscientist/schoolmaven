@@ -20,6 +20,8 @@ class IdentityExists implements ValidationRule
             ->orWhere('username', $value)
             ->exists();
 
-        if (!$exists) $fail('The provided :attribute does not exist.');
+        if (! $exists) {
+            $fail('The provided :attribute does not exist.');
+        }
     }
 }

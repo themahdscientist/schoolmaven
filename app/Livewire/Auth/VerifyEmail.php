@@ -24,6 +24,7 @@ class VerifyEmail extends Component
             $this->rateLimit(1);
         } catch (TooManyRequestsException $exception) {
             $this->error = "Too many email requests! Please wait another {$exception->secondsUntilAvailable} seconds before retrying.";
+
             return;
         }
 
@@ -32,7 +33,8 @@ class VerifyEmail extends Component
         $this->message = 'Verification link sent!';
     }
 
-    public function updating() {
+    public function updating()
+    {
         $this->error = null;
     }
 }

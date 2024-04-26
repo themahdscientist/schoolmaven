@@ -32,7 +32,7 @@ class StaffObserver
      */
     public function deleted(Staff $staff): void
     {
-        if (!is_null($staff->qualifications)) {
+        if (! is_null($staff->qualifications)) {
             Storage::disk('public')->delete($staff->qualifications);
         }
     }

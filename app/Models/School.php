@@ -39,9 +39,9 @@ class School extends Model
     protected function casts(): array
     {
         return [
-            'affiliation' =>  'array',
+            'affiliation' => 'array',
             'info' => 'array',
-            'type' =>  'array',
+            'type' => 'array',
             'established_date' => 'date',
         ];
     }

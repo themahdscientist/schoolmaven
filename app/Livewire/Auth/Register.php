@@ -31,7 +31,7 @@ class Register extends Component
 
         Notification::make()
             ->title('Registration Success')
-            ->body('Welcome ' . auth()->user()->first_name . '!')
+            ->body('Welcome '.auth()->user()->first_name.'!')
             ->success()
             ->send();
 

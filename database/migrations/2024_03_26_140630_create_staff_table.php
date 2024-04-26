@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('staff', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('grade_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('staff_type')->constrained('staff_roles');
             $table->string('staff_code')->unique();
             $table->string('position_title');
             $table->enum('contract_type', ['full-time', 'part-time', 'contractual'])->default('full-time');

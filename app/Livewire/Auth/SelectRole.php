@@ -27,6 +27,6 @@ class SelectRole extends Component
     {
         session(['role' => $this->role]);
 
-        return $this->redirectIntended(route('app.' . $this->role . '.dashboard'));
+        return $this->redirectIntended(route('app.'.$this->role.'.dashboard'));
     }
 }

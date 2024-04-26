@@ -2,56 +2,60 @@
 
 namespace App\Livewire\Admin;
 
-use Carbon\Carbon;
+use App\Models\Country;
+use App\Models\Grade;
 use App\Models\Lga;
 use App\Models\Role;
-use App\Models\User;
-use App\Models\State;
-use App\Models\Country;
 use App\Models\Staff as ModelsStaff;
+use App\Models\StaffRole;
+use App\Models\State;
+use App\Models\User;
 use Filament\Forms\Components\Actions;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
-use Livewire\Component;
-use Filament\Tables\Table;
-use Illuminate\Support\Str;
-use Livewire\Attributes\Title;
-use Illuminate\Support\Collection;
-use Illuminate\Support\HtmlString;
-use Filament\Tables\Actions\Action;
-use Filament\Support\Enums\MaxWidth;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Components\Textarea;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Contracts\HasTable;
-use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
-use Filament\Tables\Columns\ImageColumn;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Grid;
-use Filament\Tables\Actions\CreateAction;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Wizard\Step;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Support\Enums\IconSize;
+use Filament\Support\Enums\MaxWidth;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ViewColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\ActionsPosition;
+use Filament\Tables\Table;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Title;
+use Livewire\Component;
 
 #[Title('Staff')]
 class Staff extends Component implements HasForms, HasTable
 {
-    use InteractsWithTable;
     use InteractsWithForms;
+    use InteractsWithTable;
+
+    protected $listeners = ['refreshTable' => '$refresh'];
 
     public function table(Table $table): Table
     {
@@ -59,25 +63,39 @@ class Staff extends Component implements HasForms, HasTable
             ->heading('Staff')
             ->description('Manage your staff members here.')
             ->striped()
-            ->headerActions([$this->staffCreateAction()])
+            ->headerActions([
+                $this->staffGradeLink(),
+                $this->staffCreateAction(),
+            ])
             ->actions(
-                ActionGroup::make([
-                    $this->staffEditAction(),
-                    DeleteAction::make(),
-                ]),
+                [
+                    ActionGroup::make([
+                        $this->staffEditAction(),
+                        DeleteAction::make(),
+                    ])
+                        ->tooltip('Actions'),
+                    $this->gradesEditAction(),
+                ],
                 ActionsPosition::BeforeCells
             )
             ->query(User::query()->whereHas('roles', function (Builder $query) {
                 $query->where('roles.id', Role::STAFF);
             }))
             ->columns([
+                TextColumn::make('#')
+                    ->label('S/N')
+                    ->searchable(false)
+                    ->rowIndex(),
                 ImageColumn::make('avatar')
                     ->label('')
                     ->circular(),
-                TextColumn::make('first_name')
-                    ->label('Name')
-                    ->formatStateUsing(fn ($state, $record) => $state . ' ' . $record->last_name)
+                TextColumn::make('full_name')
+                    ->label('Full Name')
+                    ->searchable(['first_name', 'middle_name', 'last_name'])
                     ->sortable(),
+                ViewColumn::make('grades_count')
+                    ->label('No. of Grades')
+                    ->view('filament.tables.columns.staff-grades-count'),
                 TextColumn::make('email')
                     ->sortable(),
                 TextColumn::make('phone')
@@ -100,7 +118,7 @@ class Staff extends Component implements HasForms, HasTable
                     ->color(fn (User $record): string => \App\StudentStatus::from($record->status)->getColor())
                     ->tooltip(fn (User $record): string => \App\StudentStatus::from($record->status)->getLabel()),
             ])
-            ->emptyStateIcon('c-users')
+            ->emptyStateIcon('s-users')
             ->emptyStateHeading('No staff')
             ->emptyStateDescription('Create a staff member to get started')
             ->emptyStateActions([$this->staffCreateAction()]);
@@ -109,7 +127,7 @@ class Staff extends Component implements HasForms, HasTable
     public function staffCreateAction(): Action
     {
         return CreateAction::make()
-            ->icon('c-document-plus')
+            ->icon('s-document-plus')
             ->label('New Staff')
             ->modalWidth(MaxWidth::FitContent)
             ->closeModalByClickingAway(false)
@@ -121,7 +139,7 @@ class Staff extends Component implements HasForms, HasTable
             ->steps([
                 Step::make('Personal Info')
                     ->description('Staff bio-data.')
-                    ->columns(2)
+                    ->columns(['md' => 2])
                     ->schema([
                         Select::make('position_title')
                             ->label('Position Title')
@@ -157,7 +175,7 @@ class Staff extends Component implements HasForms, HasTable
                             ->required()
                             ->maxLength(255)
                             ->unique('users', 'email')
-                            ->hintIcon('c-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
+                            ->hintIcon('s-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
                         Select::make('gender')
                             ->label('Gender')
                             ->options([
@@ -234,7 +252,7 @@ class Staff extends Component implements HasForms, HasTable
                     ]),
                 Step::make('Contact & Security Info')
                     ->description('Residency & security data.')
-                    ->columns()
+                    ->columns(['md' => 2])
                     ->schema([
                         TextInput::make('address')
                             ->label('Address')
@@ -272,7 +290,7 @@ class Staff extends Component implements HasForms, HasTable
                             ->label('Postal Code')
                             ->placeholder('460242')
                             ->autocomplete()
-                            ->hintIcon('c-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
+                            ->hintIcon('s-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
                             ->nullable(),
                         Select::make('contract_type')
                             ->label('Contract Type')
@@ -283,39 +301,29 @@ class Staff extends Component implements HasForms, HasTable
                             ->tel()
                             ->label('Phone Number')
                             ->prefix('+234')
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->placeholder('7059753934')
                             ->autocomplete()
                             ->required(),
                         TextInput::make('emergency_phone')
                             ->label('Emergency Contact Number')
                             ->tel()
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->prefix('+234')
                             ->placeholder('7059753934'),
-                        Grid::make(1)
-                            ->schema([
-                                FileUpload::make('qualifications')
-                                    ->hint(new HtmlString('Maximum of <strong>3</strong> documents'))
-                                    ->hintIcon('c-exclamation-circle', 'Images and PDF documents are currently supported.')
-                                    ->label('Qualifications')
-                                    ->multiple()
-                                    ->panelLayout('compact')
-                                    ->acceptedFileTypes(['application/pdf', 'image/png', 'image/jpeg'])
-                                    ->appendFiles()
-                                    ->previewable(false)
-                                    ->maxSize(1024)
-                                    ->maxFiles(3)
-                                    ->disk('public')
-                                    ->directory('qualifications'),
-                                TextInput::make('password')
-                                    ->label('Password')
-                                    ->placeholder('********')
-                                    ->required()
-                                    ->password()
-                                    ->revealable(),
-                            ])
-                            ->columnSpan(1),
+                        FileUpload::make('qualifications')
+                            ->hint(new HtmlString('Maximum of <strong>3</strong> documents'))
+                            ->hintIcon('s-exclamation-circle', 'Images and PDF documents are currently supported.')
+                            ->label('Qualifications')
+                            ->multiple()
+                            ->panelLayout('compact')
+                            ->acceptedFileTypes(['application/pdf', 'image/png', 'image/jpeg'])
+                            ->appendFiles()
+                            ->previewable(false)
+                            ->maxSize(1024)
+                            ->maxFiles(3)
+                            ->disk('public')
+                            ->directory('qualifications'),
                         FileUpload::make('avatar')
                             ->label('Profile Picture')
                             ->image()
@@ -323,6 +331,17 @@ class Staff extends Component implements HasForms, HasTable
                             ->maxSize(1024)
                             ->disk('public')
                             ->directory('avatars'),
+                        TextInput::make('password')
+                            ->label('Password')
+                            ->placeholder('********')
+                            ->required()
+                            ->password()
+                            ->revealable(),
+                        Select::make('staff_type')
+                            ->label('Staff Type')
+                            ->options(\App\StaffType::class)
+                            ->required()
+                            ->native(false),
                         Textarea::make('notes')
                             ->placeholder('Type in here...')
                             ->columnSpanFull(),
@@ -331,18 +350,19 @@ class Staff extends Component implements HasForms, HasTable
             ])
             ->model(User::class)
             ->mutateFormDataUsing(function (array $data, string $model) {
-                $date = Carbon::now()->year;
-                $hour  = Carbon::now()->hour;
-                $second  = Carbon::now()->second;
+                $date = now()->year;
+                $hour = now()->hour;
+                $second = now()->second;
 
-                $data['staff_code'] = substr($date, 0, 2) .
-                    $model::query()->find(auth()->id())->school->smil_code .
-                    substr($date, -2) . $hour . $second;
-                $data['username'] = substr($date, 0, 2) .
-                    strtolower(Str::trim($data['first_name']) .
-                        substr(Str::trim($data['last_name']), 0, 1) .
-                        substr(Str::trim($data['last_name']), -1)) .
-                    substr($date, -2) . $hour . $second;
+                $data['staff_code'] = substr($date, 0, 2).
+                    $model::query()->find(auth()->id())->school->smil_code.
+                    substr($date, -2).$hour.$second;
+                $data['username'] = substr($date, 0, 2).
+                    strtolower(Str::trim($data['first_name']).
+                        substr(Str::trim($data['last_name']), 0, 1).
+                        substr(Str::trim($data['last_name']), -1)).
+                    substr($date, -2).$hour.$second;
+
                 return $data;
             })
             ->using(function (array $data, string $model): Model {
@@ -358,7 +378,7 @@ class Staff extends Component implements HasForms, HasTable
                     $user->gender = $data['gender'];
                     $user->dob = $data['dob'];
                     $user->religion = $data['religion'];
-                    $user->phone = '+234' . $data['phone'];
+                    $user->phone = '+234'.$data['phone'];
                     $user->address = $data['address'];
                     $user->postal_code = $data['postal_code'];
                     $user->lga_id = $data['lga_id'];
@@ -378,7 +398,7 @@ class Staff extends Component implements HasForms, HasTable
                     $staff->position_title = $data['position_title'];
                     $staff->contract_type = $data['contract_type'];
                     $staff->marital_status = $data['marital_status'];
-                    $staff->emergency_phone = '+234' . $data['emergency_phone'];
+                    $staff->emergency_phone = '+234'.$data['emergency_phone'];
                     $staff->salary = $data['salary'];
                     $staff->bank_details = [
                         'bank_account_number' => $data['bank_account_number'],
@@ -387,6 +407,13 @@ class Staff extends Component implements HasForms, HasTable
                     ];
                     $staff->qualifications = $data['qualifications'];
                     $staff->notes = $data['notes'];
+
+                    // Decisive Role
+                    if ($data['staff_type'] == 'teaching-staff') {
+                        $staff->staff_type = StaffRole::TEACHING_STAFF;
+                    } else {
+                        $staff->staff_type = StaffRole::NON_TEACHING_STAFF;
+                    }
                     $staff->save();
 
                     event(new Registered($user));
@@ -421,7 +448,7 @@ class Staff extends Component implements HasForms, HasTable
             ->steps([
                 Step::make('Personal Info')
                     ->description('Staff bio-data.')
-                    ->columns(2)
+                    ->columns(['md' => 2])
                     ->schema([
                         Select::make('staff.position_title')
                             ->label('Position Title')
@@ -456,7 +483,7 @@ class Staff extends Component implements HasForms, HasTable
                             ->placeholder('tms@skoolmaven.com')
                             ->required()
                             ->maxLength(255)
-                            ->hintIcon('c-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
+                            ->hintIcon('s-question-mark-circle', 'Valid email addresses only. This is the email address you\'ll use to sign in.'),
                         Select::make('gender')
                             ->label('Gender')
                             ->options([
@@ -531,7 +558,7 @@ class Staff extends Component implements HasForms, HasTable
                     ]),
                 Step::make('Contact & Security Info')
                     ->description('Residency & security data.')
-                    ->columns()
+                    ->columns(['md' => 2])
                     ->schema([
                         TextInput::make('address')
                             ->label('Address')
@@ -569,7 +596,7 @@ class Staff extends Component implements HasForms, HasTable
                             ->label('Postal Code')
                             ->placeholder('460242')
                             ->autocomplete()
-                            ->hintIcon('c-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
+                            ->hintIcon('s-question-mark-circle', 'This can be the school\'s P.M.B. (Private Mail Box)')
                             ->nullable(),
                         Select::make('staff.contract_type')
                             ->label('Contract Type')
@@ -581,7 +608,7 @@ class Staff extends Component implements HasForms, HasTable
                             ->tel()
                             ->label('Phone Number')
                             ->prefix('+234')
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->placeholder('7059753934')
                             ->autocomplete()
                             ->required(),
@@ -589,76 +616,22 @@ class Staff extends Component implements HasForms, HasTable
                             ->formatStateUsing(fn ($state) => Str::substr($state, 4))
                             ->label('Emergency Contact Number')
                             ->tel()
-                            ->prefixIcon('c-phone')
+                            ->prefixIcon('s-phone')
                             ->prefix('+234')
                             ->placeholder('7059753934'),
-                        Grid::make(1)
-                            ->schema([
-                                FileUpload::make('staff.qualifications')
-                                    ->hint(new HtmlString('Maximum of <strong>3</strong> documents'))
-                                    ->hintIcon('c-exclamation-circle', 'Images and PDF documents are currently supported.')
-                                    ->label('Qualifications')
-                                    ->multiple()
-                                    ->panelLayout('compact')
-                                    ->acceptedFileTypes(['application/pdf', 'image/png', 'image/jpeg'])
-                                    ->appendFiles()
-                                    ->previewable(false)
-                                    ->maxSize(1024)
-                                    ->maxFiles(3)
-                                    ->disk('public')
-                                    ->directory('qualifications'),
-                                Actions::make([
-                                    Actions\Action::make('Change Password')
-                                        ->icon('c-lock-closed')
-                                        ->iconSize(IconSize::Small)
-                                        ->modalWidth(MaxWidth::FitContent)
-                                        ->modalHeading('Change Password')
-                                        ->modalDescription('Confirm your old password before creating a new one')
-                                        ->modalSubmitActionLabel('Change')
-                                        ->form([
-                                            TextInput::make('password')
-                                                ->label('Current Password')
-                                                ->password()
-                                                ->revealable()
-                                                ->required(),
-                                            TextInput::make('new_password')
-                                                ->label('New Password')
-                                                ->password()
-                                                ->revealable()
-                                                ->required(),
-                                        ])
-                                        ->modalSubmitAction(function () {
-                                            Notification::make()
-                                                ->title('Info Alert')
-                                                ->body('On successful password update, every session logged in with this guardian will expire.')
-                                                ->info()
-                                                ->send();
-                                        })
-                                        ->afterFormValidated(function (array $data, User $record) {
-                                            if (Hash::check($data['password'], $record->password)) {
-                                                $record->forceFill([
-                                                    'password' => Hash::make($data['new_password'])
-                                                ]);
-                                                $record->save();
-
-                                                Notification::make()
-                                                    ->title('Password Updated')
-                                                    ->success()
-                                                    ->send();
-                                            } else {
-                                                $this->form->fill();
-                                                Notification::make()
-                                                    ->title('Password Update Declined')
-                                                    ->body('The password do not match our records')
-                                                    ->danger()
-                                                    ->send();
-                                            }
-                                        })
-                                ])
-                                    ->alignCenter()
-                                    ->verticallyAlignCenter(),
-                            ])
-                            ->columnSpan(1),
+                        FileUpload::make('staff.qualifications')
+                            ->hint(new HtmlString('Maximum of <strong>3</strong> documents'))
+                            ->hintIcon('s-exclamation-circle', 'Images and PDF documents are currently supported.')
+                            ->label('Qualifications')
+                            ->multiple()
+                            ->panelLayout('compact')
+                            ->acceptedFileTypes(['application/pdf', 'image/png', 'image/jpeg'])
+                            ->appendFiles()
+                            ->previewable(false)
+                            ->maxSize(1024)
+                            ->maxFiles(3)
+                            ->disk('public')
+                            ->directory('qualifications'),
                         FileUpload::make('avatar')
                             ->label('Profile Picture')
                             ->image()
@@ -666,6 +639,47 @@ class Staff extends Component implements HasForms, HasTable
                             ->maxSize(1024)
                             ->disk('public')
                             ->directory('avatars'),
+                        Actions::make([
+                            Actions\Action::make('Change Password')
+                                ->icon('s-lock-closed')
+                                ->iconSize(IconSize::Small)
+                                ->modalWidth(MaxWidth::FitContent)
+                                ->modalHeading('Change Password')
+                                ->modalDescription('Create a new password for this staff')
+                                ->modalSubmitActionLabel('Change')
+                                ->form([
+                                    TextInput::make('password')
+                                        ->label('New Password')
+                                        ->password()
+                                        ->revealable()
+                                        ->required(),
+                                ])
+                                ->modalSubmitAction(function () {
+                                    Notification::make()
+                                        ->title('Info Alert')
+                                        ->body('On successful password update, every session logged in with this guardian will expire.')
+                                        ->info()
+                                        ->send();
+                                })
+                                ->afterFormValidated(function (array $data, User $record) {
+                                    $record->forceFill([
+                                        'password' => Hash::make($data['password']),
+                                    ]);
+                                    $record->save();
+
+                                    Notification::make()
+                                        ->title('Password Updated')
+                                        ->success()
+                                        ->send();
+                                }),
+                        ])
+                            ->alignCenter()
+                            ->verticallyAlignCenter(),
+                        Select::make('staff.staff_type')
+                            ->label('Staff Type')
+                            ->relationship('staff.staffRole', 'description')
+                            ->required()
+                            ->native(false),
                         Textarea::make('staff.notes')
                             ->placeholder('Type in here...')
                             ->columnSpanFull(),
@@ -674,8 +688,8 @@ class Staff extends Component implements HasForms, HasTable
             ])
             ->fillForm(fn (User $record) => $record->toArray())
             ->mutateFormDataUsing(function (array $data) {
-                $data['staff']['emergency_phone'] = '+234' . $data['staff']['emergency_phone'];
-                $data['phone'] = '+234' . $data['phone'];
+                $data['staff']['emergency_phone'] = '+234'.$data['staff']['emergency_phone'];
+                $data['phone'] = '+234'.$data['phone'];
 
                 return $data;
             })
@@ -689,6 +703,76 @@ class Staff extends Component implements HasForms, HasTable
 
                     return $record;
                 });
+            });
+    }
+
+    public function staffGradeLink(): Action
+    {
+        return CreateAction::make('staff_grade')
+            ->icon('s-squares-plus')
+            ->label('Assign grades')
+            ->modalWidth(MaxWidth::Medium)
+            ->modalHeading('Staff Grade Linking')
+            ->modalDescription('Assign staff members to grades')
+            ->modalSubmitActionLabel('Assign')
+            ->createAnother(false)
+            ->form([
+                Select::make('teachers')
+                    ->options(
+                        User::query()
+                            ->join('staff', 'users.id', '=', 'staff.user_id')
+                            ->whereExists(function ($query) {
+                                $query->select(DB::raw(1))
+                                    ->from('roles')
+                                    ->join('role_user', 'roles.id', '=', 'role_user.role_id')
+                                    ->whereColumn('users.id', 'role_user.user_id')
+                                    ->where('name', 'staff');
+                            })
+                            ->where('staff.staff_type', StaffRole::TEACHING_STAFF)
+                            ->get(['first_name', 'middle_name', 'last_name', 'staff.id as staff_id'])
+                            ->pluck('full_name', 'staff_id')
+                    )
+                    ->multiple()
+                    ->required()
+                    ->searchable()
+                    ->native(false)
+                    ->hintIcon('s-exclamation-circle', 'This list contains only staff members who are teachers.')
+                    ->hintColor('danger'),
+                CheckboxList::make('grades')
+                    ->options(Grade::all()->pluck('name', 'id'))
+                    ->required()
+                    ->columns()
+                    ->searchable()
+                    ->bulkToggleable(),
+            ])
+            ->model(ModelsStaff::class)
+            ->using(function (array $data, $model): ModelsStaff {
+                return DB::transaction(function () use ($data, $model) {
+                    $teachers = $model::query()->findMany($data['teachers']);
+                    $grades = Grade::query()->findMany($data['grades']);
+
+                    $teachers->each(function (ModelsStaff $teacher) use ($grades) {
+                        $teacher->grades()->syncWithoutDetaching($grades);
+                    });
+
+                    return $teachers->first();
+                });
+            })
+            ->successNotificationTitle('Linkage success');
+    }
+
+    public function gradesEditAction(): Action
+    {
+        return Action::make('grades')
+            ->icon('s-rectangle-stack')
+            ->color('gray')
+            ->button()
+            ->modal(false)
+            ->action(function (User $record) {
+                $this->dispatch('openModal',
+                    component: 'filament.tables.columns.staff-grades-edit',
+                    arguments: ['record' => $record]
+                );
             });
     }
 }

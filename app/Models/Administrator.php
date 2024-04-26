@@ -16,7 +16,8 @@ class Administrator extends Model
         'position',
     ];
 
-    public function user(): BelongsTo {
+    public function user(): BelongsTo
+    {
         return $this->belongsTo(User::class);
     }
 }

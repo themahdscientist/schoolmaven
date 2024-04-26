@@ -2,17 +2,17 @@
 
 namespace App\Livewire\Forms;
 
-use Carbon\Carbon;
-use Livewire\Form;
-use App\Models\Role;
-use App\Models\User;
-use App\Models\State;
-use App\Models\School;
-use App\Models\Country;
-use Illuminate\Support\Str;
 use App\Models\Administrator;
-use Livewire\Attributes\Validate;
+use App\Models\Country;
+use App\Models\Role;
+use App\Models\School;
+use App\Models\State;
+use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Validate;
+use Livewire\Form;
 
 class RegisterForm extends Form
 {
@@ -104,7 +104,9 @@ class RegisterForm extends Form
     public $password_confirmation;
 
     public $countries;
+
     public $states;
+
     public $lgas;
 
     protected function generateSMILCode(): string
@@ -147,96 +149,99 @@ class RegisterForm extends Form
 
     protected function generateUsername(): mixed
     {
-        $date = Carbon::now()->year;
-        $hour  = Carbon::now()->hour;
-        $second  = Carbon::now()->second;
-        return substr($date, 0, 2) .
-            strtolower(Str::trim($this->u_fname) .
-                substr(Str::trim($this->u_lname), 0, 1) .
-                substr(Str::trim($this->u_lname), -1)) .
-            substr($date, -2) . $hour . $second;
+        $date = now()->year;
+        $hour = now()->hour;
+        $second = now()->second;
+
+        return substr($date, 0, 2).
+            strtolower(Str::trim($this->u_fname).
+                substr(Str::trim($this->u_lname), 0, 1).
+                substr(Str::trim($this->u_lname), -1)).
+            substr($date, -2).$hour.$second;
     }
 
     protected function generateAdminCode(): mixed
     {
-        $date = Carbon::now()->year;
-        $hour  = Carbon::now()->hour;
-        $second  = Carbon::now()->second;
+        $date = now()->year;
+        $hour = now()->hour;
+        $second = now()->second;
         $positionShortForms = [
             'administrator' => 'ADM',
             'principal' => 'PRN',
             'owner' => 'OWN',
         ];
 
-        return substr($date, 0, 2) .
-            $this->generateSMILCode() .
-            $positionShortForms[$this->u_position] .
-            substr($date, -2) . $hour . $second;
+        return substr($date, 0, 2).
+            $this->generateSMILCode().
+            $positionShortForms[$this->u_position].
+            substr($date, -2).$hour.$second;
     }
 
     public function store()
     {
         $this->validate();
 
-        // School
-        $school = new School;
-        $school->smil_code = $this->generateSMILCode();
-        $school->name = $this->s_name;
-        $school->alias = $this->s_alias;
-        $school->address = $this->s_addr;
-        $school->lga_id = $this->lga;
-        $school->state_id = $this->state;
-        $school->country_id = $this->country;
-        $school->postal_code = $this->s_pmb;
-        $school->info = [
-            'email' => $this->s_email,
-            'url' => $this->s_url,
-        ];
-        $school->accreditation = $this->s_accredit;
-        $school->type = $this->s_type;
-        $school->affiliation = $this->s_affiliates;
-        $school->mission = $this->s_mission;
-        $school->vision = $this->s_vision;
-        $school->established_date = $this->s_est;
-        $school->logo = $this->s_logo->store('logos', 'public');
-        $school->save();
+        DB::transaction(function () {
+            // School
+            $school = new School;
+            $school->smil_code = $this->generateSMILCode();
+            $school->name = $this->s_name;
+            $school->alias = $this->s_alias;
+            $school->address = $this->s_addr;
+            $school->lga_id = $this->lga;
+            $school->state_id = $this->state;
+            $school->country_id = $this->country;
+            $school->postal_code = $this->s_pmb;
+            $school->info = [
+                'email' => $this->s_email,
+                'url' => $this->s_url,
+            ];
+            $school->accreditation = $this->s_accredit;
+            $school->type = $this->s_type;
+            $school->affiliation = $this->s_affiliates;
+            $school->mission = $this->s_mission;
+            $school->vision = $this->s_vision;
+            $school->established_date = $this->s_est;
+            $school->logo = $this->s_logo->store('logos', 'public');
+            $school->save();
 
-        // User
-        $user = new User;
-        $user->school_id = $school->id;
-        $user->username = $this->generateUsername();
-        $user->email = $this->u_email;
-        $user->password = $this->password_confirmation;
-        $user->first_name = $this->u_fname;
-        $user->middle_name = $this->u_mname;
-        $user->last_name = $this->u_lname;
-        $user->gender = $this->u_gender;
-        $user->dob = $this->u_dob;
-        $user->religion = $this->u_religion;
-        $user->phone = $this->u_phone;
-        $user->address = $this->s_addr;
-        $user->postal_code = $this->s_pmb;
-        $user->lga_id = $this->lga;
-        $user->state_id = $this->state;
-        $user->country_id = $this->country;
-        $user->lga_origin_id = $this->lga;
-        $user->state_origin_id = $this->state;
-        $user->nationality_id = $this->country;
-        $user->avatar = $this->u_avatar->store('avatars', 'public');
-        $user->save();
-        $user->roles()->attach(Role::ADMIN);
+            // User
+            $user = new User;
+            $user->school_id = $school->id;
+            $user->username = $this->generateUsername();
+            $user->email = $this->u_email;
+            $user->password = $this->password_confirmation;
+            $user->first_name = $this->u_fname;
+            $user->middle_name = $this->u_mname;
+            $user->last_name = $this->u_lname;
+            $user->gender = $this->u_gender;
+            $user->dob = $this->u_dob;
+            $user->religion = $this->u_religion;
+            $user->phone = $this->u_phone;
+            $user->address = $this->s_addr;
+            $user->postal_code = $this->s_pmb;
+            $user->lga_id = $this->lga;
+            $user->state_id = $this->state;
+            $user->country_id = $this->country;
+            $user->lga_origin_id = $this->lga;
+            $user->state_origin_id = $this->state;
+            $user->nationality_id = $this->country;
+            $user->avatar = $this->u_avatar->store('avatars', 'public');
+            $user->save();
+            $user->roles()->attach(Role::ADMIN);
 
-        // Admin
-        $admin = new Administrator;
-        $admin->user_id = $user->id;
-        $admin->administrator_code = $this->generateAdminCode();
-        $admin->position = $this->u_position;
-        $admin->save();
+            // Admin
+            $admin = new Administrator;
+            $admin->user_id = $user->id;
+            $admin->administrator_code = $this->generateAdminCode();
+            $admin->position = $this->u_position;
+            $admin->save();
 
-        request()->session()->regenerate();
-        auth()->login($user);
+            request()->session()->regenerate();
+            auth()->login($user);
 
-        event(new Registered($user));
+            event(new Registered($user));
+        });
 
         $this->reset();
     }

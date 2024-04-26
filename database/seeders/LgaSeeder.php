@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Lga;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class LgaSeeder extends Seeder
@@ -33,7 +32,6 @@ class LgaSeeder extends Seeder
         Lga::factory()->create(['name' => 'Umuahia North', 'state_id' => $abia, 'capital' => true]);  // Assuming Umuahia North is the capital LGA
         Lga::factory()->create(['name' => 'Umuahia South', 'state_id' => $abia, 'capital' => false]);
         Lga::factory()->create(['name' => 'Umunneochi', 'state_id' => $abia, 'capital' => false]);
-
 
         // Assuming Adamawa state has an id of 2 in the states table
         $adamawa = 2;

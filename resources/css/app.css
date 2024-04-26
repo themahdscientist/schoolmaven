@@ -21,11 +21,11 @@
 }
 
 @layer components {
-    .scrollbar,
-    .fi-ta-content,
+    /* .scrollbar,
+    !.fi-ta-content, fa-ta-content was affecting my table content. beware before uncommenting.
     .fi-modal-close-overlay + div {
         scrollbar-gutter: stable;
-    }
+    } */
 
     .scrollbar::-webkit-scrollbar,
     .fi-modal-close-overlay + div::-webkit-scrollbar {
@@ -130,5 +130,13 @@
 
     .fi-dropdown-panel {
         @apply !absolute;
+    }
+
+    #modal-container {
+        @apply fi-modal-window pointer-events-auto relative row-start-2 w-full cursor-default bg-white shadow-xl ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 mx-auto rounded-xl max-w-fit;
+    }
+
+    .absolute.inset-0.bg-gray-500.opacity-75 {
+        @apply fi-modal-close-overlay fixed z-40 bg-gray-950/75;
     }
 }
