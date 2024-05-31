@@ -11,6 +11,8 @@
         "laravel/framework": "^11.0",
         "laravel/tinker": "^2.9",
         "livewire/livewire": "^3.4",
+        "openspout/openspout": "^4.23",
+        "power-components/livewire-powergrid": "^5.4",
         "s-ichikawa/laravel-sendgrid-driver": "^4.0",
         "wire-elements/modal": "^2.0"
     },

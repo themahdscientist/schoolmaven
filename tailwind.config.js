@@ -9,6 +9,10 @@ export default {
     './resources/views/filament/**/*.blade.php',
     './vendor/filament/**/*.blade.php',
     './vendor/wire-elements/modal/**/*.blade.php',
+    './app/Http/Livewire/**/*Table.php',
+    './app/PowerGridThemes/*.php',
+    './vendor/power-components/livewire-powergrid/resources/views/**/*.php',
+    './vendor/power-components/livewire-powergrid/src/Themes/Tailwind.php'
   ],
   darkMode: 'class',
   theme: {

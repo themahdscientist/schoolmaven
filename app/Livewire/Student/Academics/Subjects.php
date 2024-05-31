@@ -14,6 +14,6 @@ class Subjects extends Component
 
     public function mount()
     {
-        $this->subjects = User::find(auth()->id())->student->grade->subjects;
+        $this->subjects = User::find(auth()->id())->student->classroom->grade->subjects;
     }
 }

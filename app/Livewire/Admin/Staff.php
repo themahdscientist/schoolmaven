@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\Classroom;
 use App\Models\Country;
-use App\Models\Grade;
 use App\Models\Lga;
 use App\Models\Role;
 use App\Models\Staff as ModelsStaff;
@@ -46,6 +46,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -55,7 +56,10 @@ class Staff extends Component implements HasForms, HasTable
     use InteractsWithForms;
     use InteractsWithTable;
 
-    protected $listeners = ['refreshTable' => '$refresh'];
+    #[On('refreshTable')]
+    public function refresh(): void
+    {
+    }
 
     public function table(Table $table): Table
     {
@@ -64,7 +68,7 @@ class Staff extends Component implements HasForms, HasTable
             ->description('Manage your staff members here.')
             ->striped()
             ->headerActions([
-                $this->staffGradeLink(),
+                $this->staffClassroomLink(),
                 $this->staffCreateAction(),
             ])
             ->actions(
@@ -74,13 +78,16 @@ class Staff extends Component implements HasForms, HasTable
                         DeleteAction::make(),
                     ])
                         ->tooltip('Actions'),
-                    $this->gradesEditAction(),
+                    $this->classroomsEditAction(),
                 ],
                 ActionsPosition::BeforeCells
             )
-            ->query(User::query()->whereHas('roles', function (Builder $query) {
-                $query->where('roles.id', Role::STAFF);
-            }))
+            ->query(
+                User::query()->whereHas('roles', function (Builder $query) {
+                    $query->where('roles.id', Role::STAFF);
+                })
+                    ->with('staff.classrooms')
+            )
             ->columns([
                 TextColumn::make('#')
                     ->label('S/N')
@@ -93,9 +100,9 @@ class Staff extends Component implements HasForms, HasTable
                     ->label('Full Name')
                     ->searchable(['first_name', 'middle_name', 'last_name'])
                     ->sortable(),
-                ViewColumn::make('grades_count')
-                    ->label('No. of Grades')
-                    ->view('filament.tables.columns.staff-grades-count'),
+                ViewColumn::make('classroom_count')
+                    ->label('No. of Classrooms')
+                    ->view('filament.tables.columns.staff-classrooms-count'),
                 TextColumn::make('email')
                     ->sortable(),
                 TextColumn::make('phone')
@@ -135,6 +142,7 @@ class Staff extends Component implements HasForms, HasTable
             ->stickyModalFooter()
             ->modalHeading('Staff Admissions')
             ->modalDescription('Enroll a staff member')
+            ->modalSubmitActionLabel('Employ')
             ->skippableSteps()
             ->steps([
                 Step::make('Personal Info')
@@ -245,7 +253,6 @@ class Staff extends Component implements HasForms, HasTable
                         TextInput::make('salary')
                             ->numeric()
                             ->inputMode('decimal')
-                            ->step(500)
                             ->prefix(new HtmlString('<strong>NGN</strong>'))
                             ->placeholder('150000')
                             ->required(),
@@ -418,19 +425,20 @@ class Staff extends Component implements HasForms, HasTable
 
                     event(new Registered($user));
 
-                    Notification::make()
-                        ->title('Congratulations!')
-                        ->body('You\ve been admitted successfully 🎉')
-                        ->success()
-                        ->sendToDatabase($user);
-
                     return $user;
                 });
             })
+            ->after(function (User $record) {
+                Notification::make()
+                    ->title('Congratulations!')
+                    ->body('You\'ve been employed 🎉')
+                    ->success()
+                    ->sendToDatabase($record);
+            })
             ->successNotification(
                 Notification::make()
-                    ->title('Admission Success')
-                    ->body('Staff member has been provisioned 🎉')
+                    ->title('Success')
+                    ->body('Staff member has been employed 🎉')
                     ->success()
             );
     }
@@ -706,14 +714,14 @@ class Staff extends Component implements HasForms, HasTable
             });
     }
 
-    public function staffGradeLink(): Action
+    public function staffClassroomLink(): Action
     {
-        return CreateAction::make('staff_grade')
+        return CreateAction::make('staff_classroom')
             ->icon('s-squares-plus')
-            ->label('Assign grades')
+            ->label('Assign classrooms')
             ->modalWidth(MaxWidth::Medium)
-            ->modalHeading('Staff Grade Linking')
-            ->modalDescription('Assign staff members to grades')
+            ->modalHeading('Staff Classroom Linking')
+            ->modalDescription('Assign staff members to classrooms')
             ->modalSubmitActionLabel('Assign')
             ->createAnother(false)
             ->form([
@@ -738,8 +746,8 @@ class Staff extends Component implements HasForms, HasTable
                     ->native(false)
                     ->hintIcon('s-exclamation-circle', 'This list contains only staff members who are teachers.')
                     ->hintColor('danger'),
-                CheckboxList::make('grades')
-                    ->options(Grade::all()->pluck('name', 'id'))
+                CheckboxList::make('classrooms')
+                    ->options(Classroom::all()->pluck('name', 'id'))
                     ->required()
                     ->columns()
                     ->searchable()
@@ -749,10 +757,10 @@ class Staff extends Component implements HasForms, HasTable
             ->using(function (array $data, $model): ModelsStaff {
                 return DB::transaction(function () use ($data, $model) {
                     $teachers = $model::query()->findMany($data['teachers']);
-                    $grades = Grade::query()->findMany($data['grades']);
+                    $classrooms = Classroom::query()->findMany($data['classrooms']);
 
-                    $teachers->each(function (ModelsStaff $teacher) use ($grades) {
-                        $teacher->grades()->syncWithoutDetaching($grades);
+                    $teachers->each(function (ModelsStaff $teacher) use ($classrooms) {
+                        $teacher->classrooms()->syncWithoutDetaching($classrooms);
                     });
 
                     return $teachers->first();
@@ -761,17 +769,18 @@ class Staff extends Component implements HasForms, HasTable
             ->successNotificationTitle('Linkage success');
     }
 
-    public function gradesEditAction(): Action
+    public function classroomsEditAction(): Action
     {
-        return Action::make('grades')
+        return Action::make('classrooms')
             ->icon('s-rectangle-stack')
             ->color('gray')
             ->button()
             ->modal(false)
             ->action(function (User $record) {
-                $this->dispatch('openModal',
-                    component: 'filament.tables.columns.staff-grades-edit',
-                    arguments: ['record' => $record]
+                $this->dispatch(
+                    'openModal',
+                    'filament.tables.columns.staff-classrooms-edit',
+                    ['record' => $record]
                 );
             });
     }

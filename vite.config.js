@@ -14,5 +14,11 @@ export default defineConfig({
             '~animate': __dirname + '/node_modules/animate.css',
             '~flatpickr': __dirname + '/node_modules/flatpickr',
         },
+    },
+    server: {
+        host: true,
+        hmr: {
+            host: 'localhost',
+        }
     }
 });

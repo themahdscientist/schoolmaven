@@ -31,8 +31,14 @@ return new class extends Migration
                 '17-18',
             ]);
             $table->text('description')->nullable();
-            $table->integer('subject_count')->nullable();
-            $table->integer('section_count')->nullable();
+            $table->json('assessment_methods');
+            $table->json('meeting_methods');
+            $table->enum('meeting_frequency', [
+                'daily',
+                'weekly',
+                'bi-weekly',
+                'monthly',
+            ]);
             $table->date('start_date');
             $table->date('end_date');
             $table->enum('status', ['active', 'inactive'])->default('active');

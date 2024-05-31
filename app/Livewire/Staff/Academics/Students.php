@@ -10,10 +10,10 @@ use Livewire\Component;
 #[Title('Students')]
 class Students extends Component
 {
-    public Collection $grades;
+    public Collection $classrooms;
 
     public function mount()
     {
-        $this->grades = User::query()->find(auth()->id())->staff->grades()->with('students.user')->get();
+        $this->classrooms = User::query()->find(auth()->id())->staff->classrooms()->with(['students.user', 'grade'])->get();
     }
 }

@@ -10,9 +10,9 @@
         <div class="fi-ta-header flex flex-col gap-3 p-4 sm:px-6 sm:flex-row sm:items-center">
             <div class="grid gap-y-1">
                 <h3 class="fi-ta-header-heading text-base font-semibold leading-6 text-gray-950 dark:text-white">
-                    Subjects </h3>
-                <p class="fi-ta-header-description text-sm text-gray-600 dark:text-gray-400"> Manage your
-                    subjects (courses) here. </p>
+                    Subjects</h3>
+                <p class="fi-ta-header-description text-sm text-gray-600 dark:text-gray-400">Manage your
+                    subjects (courses) here.</p>
             </div>
         </div>
         <div

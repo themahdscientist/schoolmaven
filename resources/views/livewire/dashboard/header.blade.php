@@ -34,9 +34,9 @@
         {{-- Dark Mode Toggler --}}
 
         {{-- Notifications --}}
-        <x-filament::icon-button icon="s-bell" color="gray" tooltip="Notifications" x-data="{}"
+        <x-filament::icon-button icon="s-bell" color="gray" badge-size="lg" tooltip="Notifications" x-data="{}"
             x-on:click="$dispatch('open-modal', { id: 'database-notifications' })">
-            <x-slot name="badge">10</x-slot>
+            <x-slot name="badge">{{ !$unreadNotificationsCount ? '' : $unreadNotificationsCount }}</x-slot>
         </x-filament::icon-button>
         {{-- Notifications --}}
 
@@ -60,7 +60,7 @@
                 class="absolute right-0 mt-4 flex w-60 flex-col rounded border border-secondary bg-light shadow dark:border-neutral-600 dark:bg-dark dark:text-secondary">
                 <ul class="flex flex-col gap-y-2 border-b border-neutral-300 p-2 pb-4 dark:border-neutral-600">
                     <li>
-                        <a wire:navigate href="{{ route('app.admin.profile') }}"
+                        <a wire:navigate href="{{ route('app.' . session('role') . '.profile') }}"
                             class="flex items-center gap-3.5 rounded px-4 py-2 text-sm font-medium duration-300 ease-in-out hover:bg-primary hover:text-light dark:hover:bg-primary dark:hover:text-light lg:text-base">
                             @svg('s-user-circle', 'w-6 h-6')
                             <span>My Profile</span>
@@ -74,7 +74,6 @@
                             <span>Advertise</span>
                         </a>
                     </li>
-                    @endcan
                     <li>
                         <a wire:navigate href="{{ route('app.admin.settings') }}"
                             class="flex items-center gap-3.5 rounded px-4 py-2 text-sm font-medium duration-300 ease-in-out hover:bg-primary hover:text-light dark:hover:bg-primary dark:hover:text-light lg:text-base">
@@ -82,6 +81,7 @@
                             <span>Account Settings</span>
                         </a>
                     </li>
+                    @endcan
                 </ul>
                 <div class="p-2">
                     <livewire:auth.logout

@@ -1,8 +1,11 @@
 <?php
 
 use App\Livewire\Admin\Academics;
+use App\Livewire\Admin\Academics\Classrooms;
 use App\Livewire\Admin\Academics\Grades;
+use App\Livewire\Admin\Academics\Sections;
 use App\Livewire\Admin\Academics\Subjects;
+use App\Livewire\Admin\Academics\Timetables;
 use App\Livewire\Admin\Admissions;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\Finances;
@@ -21,12 +24,14 @@ use App\Livewire\Guardian\Dashboard as GuardianDashboard;
 use App\Livewire\Guardian\Profile as GuardianProfile;
 use App\Livewire\Guardian\Wards;
 use App\Livewire\Staff\Academics as StaffAcademics;
-use App\Livewire\Staff\Academics\Grades as StaffGrades;
+use App\Livewire\Staff\Academics\Classrooms as StaffClassrooms;
 use App\Livewire\Staff\Academics\Students as StaffStudents;
+use App\Livewire\Staff\Academics\Timetables as StaffTimetables;
 use App\Livewire\Staff\Dashboard as StaffDashboard;
 use App\Livewire\Staff\Profile as StaffProfile;
 use App\Livewire\Student\Academics as StudentAcademics;
 use App\Livewire\Student\Academics\Subjects as StudentSubjects;
+use App\Livewire\Student\Academics\Timetables as StudentTimetables;
 use App\Livewire\Student\Dashboard as StudentDashboard;
 use App\Livewire\Student\Profile as StudentProfile;
 use App\Livewire\Website\Index;
@@ -34,7 +39,7 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Route;
 
 // Main Domain
-Route::get('', Index::class)->name('index');
+Route::get('', Index::class)->name('index')->middleware('role:index');
 
 // Role Selection
 Route::middleware('auth')->prefix('role')->group(function () {
@@ -42,19 +47,19 @@ Route::middleware('auth')->prefix('role')->group(function () {
 });
 
 // Password Reset
-Route::middleware('guest')->name('password.')->group(function () {
-    Route::get('/forgot-password', ForgotPassword::class)->name('request');
-    Route::get('/reset-password/{token}', ResetPassword::class)->name('reset');
+Route::middleware('guest')->name('password')->group(function () {
+    Route::get('/forgot-password', ForgotPassword::class)->name('.request');
+    Route::get('/reset-password/{token}', ResetPassword::class)->name('.reset');
 });
 
 // Email Verification
-Route::middleware('auth')->name('verification.')->group(function () {
-    Route::get('/email/verify', VerifyEmail::class)->name('notice');
+Route::middleware('auth')->name('verification')->group(function () {
+    Route::get('/email/verify', VerifyEmail::class)->name('.notice');
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();
 
         return redirect()->intended();
-    })->middleware('signed')->name('verify');
+    })->middleware('signed')->name('.verify');
 });
 
 // Terms and Privacy Policy
@@ -78,7 +83,10 @@ Route::name('app')->group(function () {
             Route::prefix('academics')->name('.academics')->group(function () {
                 Route::get('', Academics::class);
                 Route::get('grades', Grades::class)->name('.grades');
+                Route::get('sections', Sections::class)->name('.sections');
+                Route::get('classrooms', Classrooms::class)->name('.classrooms');
                 Route::get('subjects', Subjects::class)->name('.subjects');
+                Route::get('timetables', Timetables::class)->name('.timetables');
             });
             Route::prefix('admissions')->name('.admissions')->group(function () {
                 Route::get('', Admissions::class);
@@ -95,6 +103,7 @@ Route::name('app')->group(function () {
             Route::prefix('academics')->name('.academics')->group(function () {
                 Route::get('', StudentAcademics::class);
                 Route::get('subjects', StudentSubjects::class)->name('.subjects');
+                Route::get('timetables', StudentTimetables::class)->name('.timetables');
             });
             Route::get('profile', StudentProfile::class)->name('.profile');
         });
@@ -102,8 +111,9 @@ Route::name('app')->group(function () {
             Route::get('dashboard', StaffDashboard::class)->name('.dashboard');
             Route::prefix('academics')->name('.academics')->group(function () {
                 Route::get('', StaffAcademics::class);
-                Route::get('grades', StaffGrades::class)->name('.grades');
+                Route::get('classrooms', StaffClassrooms::class)->name('.classrooms');
                 Route::get('students', StaffStudents::class)->name('.students');
+                Route::get('timetables', StaffTimetables::class)->name('.timetables');
             });
             Route::get('profile', StaffProfile::class)->name('.profile');
         });

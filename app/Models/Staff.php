@@ -14,7 +14,6 @@ class Staff extends Model
 
     protected $fillable = [
         'user_id',
-        'grade_id',
         'staff_type',
         'staff_code',
         'position_title',
@@ -50,10 +49,10 @@ class Staff extends Model
     {
         return $this->hasOne(Grade::class);
     }
-
-    public function grades(): BelongsToMany
+    
+    public function classrooms(): BelongsToMany
     {
-        return $this->belongsToMany(Grade::class);
+        return $this->belongsToMany(Classroom::class);
     }
 
     public function staffRole(): BelongsTo

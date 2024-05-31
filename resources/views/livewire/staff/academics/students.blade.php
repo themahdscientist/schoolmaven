@@ -16,7 +16,7 @@
         </div>
         <div
             class="fi-ta-content relative divide-y divide-gray-200 overflow-x-auto dark:divide-white/10 dark:border-t-white/10">
-            @empty($grades)
+            @empty($classrooms)
             <div class="fi-ta-empty-state px-6 py-12">
                 <div class="fi-ta-empty-state-content mx-auto grid max-w-lg justify-items-center text-center">
                     <div class="fi-ta-empty-state-icon-ctn mb-4 rounded-full bg-gray-100 p-3 dark:bg-gray-500/20"> <svg
@@ -79,7 +79,15 @@
                             <span class="group flex w-full items-center gap-x-1 whitespace-nowrap justify-center">
                                 <span
                                     class="fi-ta-header-cell-label text-sm font-semibold text-gray-950 dark:text-white">
-                                    Grade Name
+                                    Grade
+                                </span>
+                            </span>
+                        </th>
+                        <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6" style=";">
+                            <span class="group flex w-full items-center gap-x-1 whitespace-nowrap justify-center">
+                                <span
+                                    class="fi-ta-header-cell-label text-sm font-semibold text-gray-950 dark:text-white">
+                                    Classroom
                                 </span>
                             </span>
                         </th>
@@ -110,8 +118,8 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 whitespace-nowrap dark:divide-white/5">
-                    @foreach ($grades as $grade)
-                    @foreach ($grade->students as $student)
+                    @foreach ($classrooms as $classroom)
+                    @foreach ($classroom->students as $student)
                     <tr
                         class="fi-ta-row [@media(hover:hover)]:transition [@media(hover:hover)]:duration-75 bg-gray-50 dark:bg-white/5 dark:odd:bg-dark/0 odd:bg-white/0">
                         <td
@@ -168,7 +176,28 @@
                                                     <span
                                                         class="fi-ta-text-item-label text-sm leading-6 text-gray-950 dark:text-white"
                                                         style="">
-                                                        {{ $student->grade->name }}
+                                                        {{ $classroom->grade->name }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td
+                            class="fi-ta-cell p-0 first-of-type:ps-1 last-of-type:pe-1 sm:first-of-type:ps-3 sm:last-of-type:pe-3 align-middle">
+                            <div class="fi-ta-col-wrp">
+                                <div class="flex w-full disabled:pointer-events-none justify-center text-center">
+                                    <div class="fi-ta-text grid w-full gap-y-1 px-3 py-4">
+
+                                        <div class="flex text-center justify-center">
+                                            <div class="flex max-w-max" style="">
+                                                <div class="fi-ta-text-item inline-flex items-center gap-1.5">
+                                                    <span
+                                                        class="fi-ta-text-item-label text-sm leading-6 text-gray-950 dark:text-white"
+                                                        style="">
+                                                        {{ $classroom->name }}
                                                     </span>
                                                 </div>
                                             </div>
@@ -244,7 +273,6 @@
                     @endforeach
                     @endforeach
                 </tbody>
-
             </table>
             @endempty
         </div>

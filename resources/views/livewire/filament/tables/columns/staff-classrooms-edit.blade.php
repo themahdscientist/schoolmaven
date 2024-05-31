@@ -15,10 +15,10 @@
         </div>
         <div class="">
             <h2 class="fi-modal-heading text-base font-semibold leading-6 text-gray-950 dark:text-white">
-                Subjects
+                Classrooms
             </h2>
             <p class="fi-modal-description text-sm text-gray-500 dark:text-gray-400 mt-2">
-                You can view and assign subjects to a grade
+                You can view and assign classrooms to this teacher
             </p>
         </div>
     </div>
@@ -30,24 +30,23 @@
                     <div class="grid gap-y-2">
                         <div class="flex items-center justify-between gap-x-3 ">
                             <label class="fi-fo-field-wrp-label inline-flex items-center gap-x-3">
-                                <span class="text-sm font-medium leading-6 text-gray-950 dark:text-white"> Subjects
-                                    offered
-                                </span>
+                                <span class="text-sm font-medium leading-6 text-gray-950 dark:text-white">Classrooms
+                                    offered</span>
                             </label>
                         </div>
                         <div class="grid gap-y-2">
                             <div style="--cols-default: 1; --cols-lg: 3;"
                                 class="columns-[--cols-default] lg:columns-[--cols-lg] fi-fo-checkbox-list gap-4 -mt-4">
-                                @foreach ($grades as $grade)
+                                @foreach ($classrooms as $classroom)
                                 <div wire:key="{{ $loop->iteration}}" class="break-inside-avoid pt-4">
                                     <label class="fi-fo-checkbox-list-option-label flex gap-x-3">
                                         <input type="checkbox"
                                             class="fi-checkbox-input rounded border-none bg-white shadow-sm ring-1 transition duration-75 checked:ring-0 focus:ring-2 focus:ring-offset-0 disabled:pointer-events-none disabled:bg-gray-50 disabled:text-gray-50 disabled:checked:bg-current disabled:checked:text-gray-400 dark:bg-white/5 dark:disabled:bg-transparent dark:disabled:checked:bg-gray-600 text-primary-600 ring-gray-950/10 focus:ring-primary-600 checked:focus:ring-primary-500/50 dark:text-primary-500 dark:ring-white/20 dark:checked:bg-primary-500 dark:focus:ring-primary-500 dark:checked:focus:ring-primary-400/50 dark:disabled:ring-white/10 mt-1"
-                                            value="{{ $grade->id }}" wire:model="staffGrades">
+                                            value="{{ $classroom->id }}" wire:model="staffClassrooms">
                                         <div class="grid text-sm leading-6">
                                             <span
                                                 class="fi-fo-checkbox-list-option-label font-medium text-gray-950 dark:text-white">
-                                                {{ $grade->name }}
+                                                {{ $classroom->name }}
                                             </span>
                                         </div>
                                     </label>

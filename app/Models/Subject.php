@@ -12,7 +12,12 @@ class Subject extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['user_id', 'name', 'type', 'description'];
+    protected $fillable = [
+        'user_id',
+        'name',
+        'type',
+        'description',
+    ];
 
     public function user(): BelongsTo
     {
@@ -22,5 +27,10 @@ class Subject extends Model
     public function grades(): BelongsToMany
     {
         return $this->belongsToMany(Grade::class);
+    }
+
+    public function classrooms(): BelongsToMany
+    {
+        return $this->belongsToMany(Classroom::class);
     }
 }

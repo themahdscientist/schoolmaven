@@ -125,6 +125,7 @@ class Guardians extends Component implements HasForms, HasTable
             ->stickyModalFooter()
             ->modalHeading('Guardian Admissions')
             ->modalDescription('Enroll a guardian')
+            ->modalSubmitActionLabel('Register')
             ->skippableSteps()
             ->steps([
                 Step::make('Personal Info')
@@ -336,19 +337,20 @@ class Guardians extends Component implements HasForms, HasTable
 
                     event(new Registered($user));
 
-                    Notification::make()
-                        ->title('Congratulations!')
-                        ->body('You\ve been admitted successfully 🎉')
-                        ->success()
-                        ->sendToDatabase($user);
-
                     return $user;
                 });
             })
+            ->after(function (User $record) {
+                Notification::make()
+                    ->title('Congratulations!')
+                    ->body('You\'ve been registered 🎉')
+                    ->success()
+                    ->sendToDatabase($record);
+            })
             ->successNotification(
                 Notification::make()
-                    ->title('Admission Success')
-                    ->body('Guardian has been provisioned 🎉')
+                    ->title('Success')
+                    ->body('Guardian has been registered 🎉')
                     ->success()
             );
     }

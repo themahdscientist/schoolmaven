@@ -8,6 +8,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg">
     <title>SkoolMaven&trade; CSaaS: {{ $title }}</title>
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
     @livewireStyles
     @filamentStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -36,7 +41,7 @@
     </main>
     <livewire:database-notifications />
     @endauth
-    
+
     <livewire:notifications />
     <livewire:wire-elements-modal />
 

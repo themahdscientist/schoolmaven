@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Student;
 
+use App\Models\Classroom;
 use App\Models\Country;
 use App\Models\Grade;
 use App\Models\Guardian;
@@ -43,7 +44,7 @@ class Profile extends Component implements HasForms
     public function mount(): void
     {
         $this->record = User::query()->find(auth()->id());
-        $this->form->fill($this->record->load('student.guardian.user')->toArray());
+        $this->form->fill($this->record->load(['student.guardian.user', 'student.classroom.grade'])->toArray());
     }
 
     public function form(Form $form): Form
@@ -197,7 +198,7 @@ class Profile extends Component implements HasForms
                                 ->options(User::query()->whereHas('roles', function (Builder $query) {
                                     $query->where('roles.id', Role::GUARDIAN);
                                 })
-                                    ->get()
+                                    ->get(['id', 'first_name', 'middle_name', 'last_name'])
                                     ->pluck('full_name', 'id'))
                                 ->disabled()
                                 ->searchable()
@@ -223,11 +224,20 @@ class Profile extends Component implements HasForms
                                 ->disabled()
                                 ->required()
                                 ->native(false),
-                            Select::make('student.grade_id')
+                            Select::make('student.classroom.grade.id')
                                 ->label('Grade')
                                 ->options(Grade::all()->pluck('name', 'id'))
                                 ->disabled()
-                                ->searchable()
+                                ->required()
+                                ->native(false),
+                            Select::make('student.classroom_id')
+                                ->label('Classroom')
+                                ->options(fn (Get $get) => Classroom::query()
+                                    ->where('grade_id', $get('student.classroom.grade.id'))
+                                    ->get(['id', 'name'])
+                                    ->pluck('name', 'id')
+                                )
+                                ->disabled()
                                 ->required()
                                 ->native(false),
                             Select::make('student.status')

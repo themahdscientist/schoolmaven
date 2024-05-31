@@ -420,6 +420,8 @@ class Profile extends Component implements HasForms
         $this->record->fill($data);
         $this->record->save();
 
+        $this->dispatch('refresh');
+
         Notification::make()
             ->title('Saved')
             ->success()

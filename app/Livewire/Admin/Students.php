@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\Classroom;
 use App\Models\Country;
 use App\Models\Grade;
 use App\Models\Guardian;
@@ -62,8 +63,8 @@ class Students extends Component implements HasForms, HasTable
             ->description('Manage your students here.')
             ->striped()
             ->headerActions([
-                $this->studentCreateAction()
-                ])
+                $this->studentCreateAction(),
+            ])
             ->bulkActions([
                 BulkAction::make('link_a_guardian')
                     ->icon('s-link')
@@ -129,7 +130,9 @@ class Students extends Component implements HasForms, HasTable
                 TextColumn::make('student.admission_number')
                     ->label('Admission Number')
                     ->sortable(),
-                TextColumn::make('student.grade.name')
+                TextColumn::make('student.classroom.grade.name')
+                    ->sortable(),
+                TextColumn::make('student.classroom.name')
                     ->sortable(),
                 TextColumn::make('email')
                     ->sortable(),
@@ -208,6 +211,7 @@ class Students extends Component implements HasForms, HasTable
             ->stickyModalFooter()
             ->modalHeading('Student Admissions')
             ->modalDescription('Enroll a student')
+            ->modalSubmitActionLabel('Admit')
             ->skippableSteps()
             ->steps([
                 Step::make('Personal Info')
@@ -383,12 +387,24 @@ class Students extends Component implements HasForms, HasTable
                     ->description('Grade, passport, and password data.')
                     ->columns()
                     ->schema([
-                        Select::make('grade_id')
-                            ->label('Grade')
+                        Select::make('grade')
                             ->options(Grade::all()->pluck('name', 'id'))
                             ->searchable()
+                            ->live(true)
+                            ->native(false)
                             ->required()
-                            ->native(false),
+                            ->afterStateUpdated(fn (Set $set) => $set('classroom_id', null)),
+                        Select::make('classroom_id')
+                            ->label('Classroom')
+                            ->options(fn (Get $get) => Classroom::query()
+                                ->where('grade_id', $get('grade'))
+                                ->get(['id', 'name'])
+                                ->pluck('name', 'id')
+                            )
+                            ->searchable()
+                            ->live(true)
+                            ->native(false)
+                            ->required(),
                         TextInput::make('password')
                             ->label('Password')
                             ->placeholder('********')
@@ -464,7 +480,7 @@ class Students extends Component implements HasForms, HasTable
                     $student = new Student;
                     $student->user_id = $user->id;
                     $student->guardian_id = $data['guardian_id'];
-                    $student->grade_id = $data['grade_id'];
+                    $student->classroom_id = $data['classroom_id'];
                     $student->admission_number = $data['admission_number'];
                     $student->blood_group = $data['blood_group'];
                     $student->rhesus_factor = $data['rhesus_factor'];
@@ -473,19 +489,20 @@ class Students extends Component implements HasForms, HasTable
 
                     event(new Registered($user));
 
-                    Notification::make()
-                        ->title('Congratulations!')
-                        ->body('You\ve been given provisional admission 🎉')
-                        ->success()
-                        ->sendToDatabase($user);
-
                     return $user;
                 });
             })
+            ->after(function (User $record) {
+                Notification::make()
+                    ->title('Congratulations!')
+                    ->body('You\'ve been given provisional admission 🎉')
+                    ->success()
+                    ->sendToDatabase($record);
+            })
             ->successNotification(
                 Notification::make()
-                    ->title('Admission Success')
-                    ->body('Student has been provisioned 🎉')
+                    ->title('Success')
+                    ->body('Student has been admitted 🎉')
                     ->success()
             );
     }
@@ -670,16 +687,71 @@ class Students extends Component implements HasForms, HasTable
                     ->description('Grade, passport, and password data.')
                     ->columns()
                     ->schema([
-                        Select::make('student.grade_id')
+                        Select::make('student.classroom.grade.id')
                             ->label('Grade')
                             ->options(Grade::all()->pluck('name', 'id'))
                             ->searchable()
+                            ->live(true)
+                            ->native(false)
                             ->required()
-                            ->native(false),
-                        Select::make('student.status')
-                            ->options(\App\StudentStatus::class)
-                            ->required()
-                            ->native(false),
+                            ->afterStateUpdated(fn (Set $set) => $set('student.classroom_id', null)),
+                        Select::make('student.classroom_id')
+                            ->label('Classroom')
+                            ->options(fn (Get $get) => Classroom::query()
+                                ->where('grade_id', $get('student.classroom.grade.id'))
+                                ->get(['id', 'name'])
+                                ->pluck('name', 'id')
+                            )
+                            ->searchable()
+                            ->live(true)
+                            ->native(false)
+                            ->required(),
+                        Grid::make()
+                            ->schema([
+                                Select::make('student.status')
+                                    ->options(\App\StudentStatus::class)
+                                    ->required()
+                                    ->native(false)
+                                    ->columnSpanFull(),
+                                Actions::make([
+                                    Actions\Action::make('Change Password')
+                                        ->icon('s-lock-closed')
+                                        ->iconSize(IconSize::Small)
+                                        ->modalWidth(MaxWidth::FitContent)
+                                        ->modalHeading('Change Password')
+                                        ->modalDescription('Create a new password for this student')
+                                        ->modalSubmitActionLabel('Change')
+                                        ->form([
+                                            TextInput::make('password')
+                                                ->label('New Password')
+                                                ->password()
+                                                ->revealable()
+                                                ->required(),
+                                        ])
+                                        ->modalSubmitAction(function () {
+                                            Notification::make()
+                                                ->title('Info Alert')
+                                                ->body('On successful password update, every session logged in with this student will expire.')
+                                                ->info()
+                                                ->send();
+                                        })
+                                        ->afterFormValidated(function (array $data, User $record) {
+                                            $record->forceFill([
+                                                'password' => Hash::make($data['password']),
+                                            ]);
+                                            $record->save();
+
+                                            Notification::make()
+                                                ->title('Password Updated')
+                                                ->success()
+                                                ->send();
+                                        }),
+                                ])
+                                    ->alignCenter()
+                                    ->verticallyAlignCenter()
+                                    ->columnSpanFull(),
+                            ])
+                            ->columnSpan(1),
                         FileUpload::make('avatar')
                             ->label('Passport')
                             ->image()
@@ -687,45 +759,9 @@ class Students extends Component implements HasForms, HasTable
                             ->maxSize(1024)
                             ->disk('public')
                             ->directory('avatars'),
-                        Actions::make([
-                            Actions\Action::make('Change Password')
-                                ->icon('s-lock-closed')
-                                ->iconSize(IconSize::Small)
-                                ->modalWidth(MaxWidth::FitContent)
-                                ->modalHeading('Change Password')
-                                ->modalDescription('Create a new password for this student')
-                                ->modalSubmitActionLabel('Change')
-                                ->form([
-                                    TextInput::make('password')
-                                        ->label('New Password')
-                                        ->password()
-                                        ->revealable()
-                                        ->required(),
-                                ])
-                                ->modalSubmitAction(function () {
-                                    Notification::make()
-                                        ->title('Info Alert')
-                                        ->body('On successful password update, every session logged in with this student will expire.')
-                                        ->info()
-                                        ->send();
-                                })
-                                ->afterFormValidated(function (array $data, User $record) {
-                                    $record->forceFill([
-                                        'password' => Hash::make($data['password']),
-                                    ]);
-                                    $record->save();
-
-                                    Notification::make()
-                                        ->title('Password Updated')
-                                        ->success()
-                                        ->send();
-                                }),
-                        ])
-                            ->alignCenter()
-                            ->verticallyAlignCenter(),
                     ]),
             ])
-            ->fillForm(fn (User $record) => $record->toArray())
+            ->fillForm(fn (User $record) => $record->load(['student.classroom.grade'])->toArray())
             ->mutateFormDataUsing(function (array $data) {
                 $data['student']['emergency_phone'] = '+234'.$data['student']['emergency_phone'];
                 $data['phone'] = '+234'.$data['phone'];

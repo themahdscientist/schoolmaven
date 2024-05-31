@@ -63,7 +63,7 @@ class Subjects extends Component implements HasForms, HasTable
                     ->searchable(['first_name', 'middle_name', 'last_name'])
                     ->label('Created by'),
             ])
-            ->emptyStateIcon('s-rectangle-stack')
+            ->emptyStateIcon('s-rectangle-group')
             ->emptyStateHeading('No subjects')
             ->emptyStateDescription('Create a subject to get started')
             ->emptyStateActions([$this->subjectCreateAction()]);

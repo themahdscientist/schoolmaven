@@ -1,4 +1,6 @@
 import './bootstrap';
+import './../../vendor/power-components/livewire-powergrid/dist/powergrid';
+import './../../vendor/power-components/livewire-powergrid/dist/tailwind.css';
 
 $('select[id="country"], select[id="state"], select[id="lga"], select[id="s_accredit"], select[id="s_location"], select[id="u_gender"], select[id="u_position"]').on('change', function () {
     $('option', this).eq(0).attr('disabled', 'disabled')

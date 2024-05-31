@@ -75,8 +75,16 @@
     .fi-fo-date-time-picker-panel select.grow,
     .fi-section,
     .fi-fo-tabs,
+    /* .power-grid-table,
+    .power-grid-table thead,
+    .power-grid-table #pg-footer,
+    .power-grid-table .pg-select, */
     .isolate > div > div{
         @apply bg-light dark:!bg-body-dark text-dark dark:!text-light;
+    }
+
+    .fi-ta-header-cell-label {
+        @apply uppercase;
     }
 
     .fi-modal-header {

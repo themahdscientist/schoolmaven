@@ -324,7 +324,7 @@ class Admissions extends Component implements HasActions, HasForms
 
                     Notification::make()
                         ->title('Congratulations!')
-                        ->body('You\ve been given provisional admission 🎉')
+                        ->body('You\'ve been given provisional admission 🎉')
                         ->success()
                         ->sendToDatabase($user);
 
@@ -565,7 +565,7 @@ class Admissions extends Component implements HasActions, HasForms
 
                     Notification::make()
                         ->title('Congratulations!')
-                        ->body('You\ve been admitted successfully 🎉')
+                        ->body('You\'ve been admitted successfully 🎉')
                         ->success()
                         ->sendToDatabase($user);
 
@@ -930,7 +930,7 @@ class Admissions extends Component implements HasActions, HasForms
 
                     Notification::make()
                         ->title('Congratulations!')
-                        ->body('You\ve been admitted successfully 🎉')
+                        ->body('You\'ve been admitted successfully 🎉')
                         ->success()
                         ->sendToDatabase($user);
 

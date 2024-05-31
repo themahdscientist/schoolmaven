@@ -33,7 +33,7 @@ class Wards extends Component implements HasForms, HasInfolists
 
     public function mount()
     {
-        $this->record = User::query()->find(auth()->id())->load(['student', 'student.grade.subjects']);
+        $this->record = User::query()->find(auth()->id())->load(['student', 'student.classroom.grade', 'student.classroom.subjects']);
     }
 
     public function wardsInfolist(Infolist $infolist): Infolist
@@ -62,12 +62,12 @@ class Wards extends Component implements HasForms, HasInfolists
                                         ->form([
                                             CheckboxList::make($student->user->first_name.'\'s Subjects')
                                                 ->options(function () use ($student) {
-                                                    return $student->grade->subjects->map(function (Subject $subject) {
+                                                    return $student->classroom->subjects->map(function (Subject $subject) {
                                                         return $subject->name;
                                                     })->all();
                                                 })
                                                 ->descriptions(function () use ($student) {
-                                                    return $student->grade->subjects->map(function (Subject $subject) {
+                                                    return $student->classroom->subjects->map(function (Subject $subject) {
                                                         return $subject->type;
                                                     })->all();
                                                 })
@@ -91,7 +91,10 @@ class Wards extends Component implements HasForms, HasInfolists
                                     ->placeholder($student->admission_number),
                                 TextEntry::make('grade_name')
                                     ->label('Grade Name')
-                                    ->placeholder($student->grade->name),
+                                    ->placeholder($student->classroom->grade->name),
+                                TextEntry::make('classroom_name')
+                                    ->label('Classroom Name')
+                                    ->placeholder($student->classroom->name),
                                 TextEntry::make('student_email')
                                     ->label('Email')
                                     ->placeholder($student->user->email),
@@ -111,7 +114,7 @@ class Wards extends Component implements HasForms, HasInfolists
                                     ->label('Rhesus Factor')
                                     ->placeholder($student->rhesus_factor),
                             ])
-                            ->columns()
+                            ->columns(['sm' => 2, 'md' => 3])
                             ->collapsed(),
                     ]);
                 })->all();

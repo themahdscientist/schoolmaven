@@ -8,6 +8,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
+// @author The MAHD SCIENTIST <tms@iamnoel.com>
 #[Layout('components.layouts.security')]
 #[Title('Email Verification')]
 class VerifyEmail extends Component
