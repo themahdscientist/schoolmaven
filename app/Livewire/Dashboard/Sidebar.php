@@ -39,6 +39,16 @@ class Sidebar extends Component
         return $this->redirectRoute('app.'.session('role').'.academics.timetables', navigate: true);
     }
 
+    public function exams()
+    {
+        return $this->redirectRoute('app.'.session('role').'.academics.exams', navigate: true);
+    }
+
+    public function schedules()
+    {
+        return $this->redirectRoute('app.'.session('role').'.academics.schedules', navigate: true);
+    }
+
     public function students()
     {
         return $this->redirectRoute('app.'.session('role').'.academics.students', navigate: true);

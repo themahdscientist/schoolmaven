@@ -6,7 +6,7 @@ use App\Models\Classroom;
 use App\Models\Day;
 use App\Models\Grade;
 use App\Models\Subject;
-use App\Models\Timetable as ModelsTimetable;
+use App\Models\Timetable;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\Grid;
@@ -183,7 +183,7 @@ class Timetables extends Component implements HasActions, HasForms
     public function generate(): void
     {
         $data = $this->searchEntries->getState();
-        $entries = ModelsTimetable::query()
+        $entries = Timetable::query()
             ->where('classroom_id', $data['classroom'])
             ->where('subject_id', $data['subject'])
             ->get()
@@ -210,7 +210,7 @@ class Timetables extends Component implements HasActions, HasForms
         DB::transaction(function () use ($data) {
             collect($data['timetable'])->each(function ($datum, $index) use ($data) {
                 if ($datum['start_time'] && $datum['end_time']) {
-                    ModelsTimetable::query()->updateOrCreate(
+                    Timetable::query()->updateOrCreate(
                         [
                             'day_id' => $index,
                             'classroom_id' => $data['classroom'],

@@ -114,85 +114,87 @@ class Students extends Component implements HasForms, HasTable
             )
             ->query(User::query()->whereHas('roles', function (Builder $query) {
                 $query->where('roles.id', Role::STUDENT);
-            }))
+            })
+                ->with(['student.classroom.grade', 'student.guardian.user'])
+            )
             ->columns([
-                TextColumn::make('#')
-                    ->label('S/N')
-                    ->searchable(false)
-                    ->rowIndex(),
-                ImageColumn::make('avatar')
-                    ->label('')
-                    ->circular(),
-                TextColumn::make('full_name')
-                    ->label('Full Name')
-                    ->searchable(['first_name', 'middle_name', 'last_name'])
-                    ->sortable(),
-                TextColumn::make('student.admission_number')
-                    ->label('Admission Number')
-                    ->sortable(),
-                TextColumn::make('student.classroom.grade.name')
-                    ->sortable(),
-                TextColumn::make('student.classroom.name')
-                    ->sortable(),
-                TextColumn::make('email')
-                    ->sortable(),
-                TextColumn::make('student.guardian.user.first_name')
-                    ->label('Guardian')
-                    ->formatStateUsing(fn ($state, $record) => $state.' '.$record->student->guardian->user->last_name)
-                    ->action(
-                        ViewAction::make('guardian')
-                            ->modalWidth(MaxWidth::FitContent)
-                            ->stickyModalHeader()
-                            ->stickyModalFooter()
-                            ->modalHeading('View Guardian')
-                            ->form([
-                                Grid::make(3)
-                                    ->schema([
-                                        FileUpload::make('student.guardian.user.avatar')
-                                            ->deletable(false),
-                                        Grid::make()
-                                            ->schema([
-                                                TextInput::make('student.guardian.user.first_name')
-                                                    ->label('First Name'),
-                                                TextInput::make('student.guardian.user.middle_name')
-                                                    ->label('Middle Name'),
-                                                TextInput::make('student.guardian.user.last_name')
-                                                    ->label('Last Name'),
-                                                TextInput::make('student.guardian.user.gender')
-                                                    ->label('Gender'),
-                                                DatePicker::make('student.guardian.user.dob')
-                                                    ->label('Date of Birth'),
-                                                TextInput::make('student.guardian.marital_status')
-                                                    ->label('Marital Status'),
-                                                TextInput::make('student.guardian.user.phone')
-                                                    ->formatStateUsing(fn ($state) => Str::substr($state, 4))
-                                                    ->prefixIcon('s-phone')
-                                                    ->prefix('+234'),
-                                                TextInput::make('student.guardian.occupation'),
-                                                TextInput::make('student.guardian.guardian_code')
-                                                    ->label('Guardian Code'),
-                                                TextInput::make('student.guardian.user.username')
-                                                    ->label('Username'),
-                                            ])
-                                            ->columnSpan(2),
-                                    ]),
-                            ])
-                            ->fillForm(fn (User $record) => $record->toArray())
-                    )
-                    ->placeholder('unassigned')
-                    ->searchable(['first_name', 'middle_name', 'last_name'])
-                    ->sortable(),
-                TextColumn::make('phone')
-                    ->sortable(),
-                TextColumn::make('gender')
-                    ->sortable(),
-                TextColumn::make('religion')
-                    ->sortable(),
-                IconColumn::make('student.status')
-                    ->label('Status')
-                    ->icon(fn (User $record): string => \App\StudentStatus::from($record->student->status)->getIcon())
-                    ->color(fn (User $record): string => \App\StudentStatus::from($record->student->status)->getColor())
-                    ->tooltip(fn (User $record): string => \App\StudentStatus::from($record->student->status)->getLabel()),
+            TextColumn::make('#')
+                ->label('S/N')
+                ->searchable(false)
+                ->rowIndex(),
+            ImageColumn::make('avatar')
+                ->label('')
+                ->circular(),
+            TextColumn::make('full_name')
+                ->label('Full Name')
+                ->searchable(['first_name', 'middle_name', 'last_name'])
+                ->sortable(),
+            TextColumn::make('student.admission_number')
+                ->label('Admission Number')
+                ->sortable(),
+            TextColumn::make('student.classroom.grade.name')
+                ->sortable(),
+            TextColumn::make('student.classroom.name')
+                ->sortable(),
+            TextColumn::make('email')
+                ->sortable(),
+            TextColumn::make('student.guardian.user.first_name')
+                ->label('Guardian')
+                ->formatStateUsing(fn ($state, $record) => $state.' '.$record->student->guardian->user->last_name)
+                ->action(
+                    ViewAction::make('guardian')
+                        ->modalWidth(MaxWidth::FitContent)
+                        ->stickyModalHeader()
+                        ->stickyModalFooter()
+                        ->modalHeading('View Guardian')
+                        ->form([
+                            Grid::make(3)
+                                ->schema([
+                                    FileUpload::make('student.guardian.user.avatar')
+                                        ->deletable(false),
+                                    Grid::make()
+                                        ->schema([
+                                            TextInput::make('student.guardian.user.first_name')
+                                                ->label('First Name'),
+                                            TextInput::make('student.guardian.user.middle_name')
+                                                ->label('Middle Name'),
+                                            TextInput::make('student.guardian.user.last_name')
+                                                ->label('Last Name'),
+                                            TextInput::make('student.guardian.user.gender')
+                                                ->label('Gender'),
+                                            DatePicker::make('student.guardian.user.dob')
+                                                ->label('Date of Birth'),
+                                            TextInput::make('student.guardian.marital_status')
+                                                ->label('Marital Status'),
+                                            TextInput::make('student.guardian.user.phone')
+                                                ->formatStateUsing(fn ($state) => Str::substr($state, 4))
+                                                ->prefixIcon('s-phone')
+                                                ->prefix('+234'),
+                                            TextInput::make('student.guardian.occupation'),
+                                            TextInput::make('student.guardian.guardian_code')
+                                                ->label('Guardian Code'),
+                                            TextInput::make('student.guardian.user.username')
+                                                ->label('Username'),
+                                        ])
+                                        ->columnSpan(2),
+                                ]),
+                        ])
+                        ->fillForm(fn (User $record) => $record->toArray())
+                )
+                ->placeholder('unassigned')
+                ->searchable(['first_name', 'middle_name', 'last_name'])
+                ->sortable(),
+            TextColumn::make('phone')
+                ->sortable(),
+            TextColumn::make('gender')
+                ->sortable(),
+            TextColumn::make('religion')
+                ->sortable(),
+            IconColumn::make('student.status')
+                ->label('Status')
+                ->icon(fn (User $record): string => \App\StudentStatus::from($record->student->status)->getIcon())
+                ->color(fn (User $record): string => \App\StudentStatus::from($record->student->status)->getColor())
+                ->tooltip(fn (User $record): string => \App\StudentStatus::from($record->student->status)->getLabel()),
             ])
             ->emptyStateIcon('s-user-group')
             ->emptyStateHeading('No students')

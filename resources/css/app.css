@@ -137,7 +137,7 @@
     }
 
     .fi-dropdown-panel {
-        @apply !absolute;
+        @apply z-40;
     }
 
     #modal-container {

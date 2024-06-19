@@ -1,5 +1,5 @@
 <aside :class="sidebarToggle ? 'translate-x-0' : '-translate-x-full'"
-    class="absolute left-0 top-0 z-20 flex h-screen w-64 flex-col overflow-y-hidden bg-dark duration-300 ease-linear -translate-x-full dark:bg-neutral-900 lg:static lg:translate-x-0"
+    class="absolute left-0 top-0 z-20 flex h-screen w-64 flex-col overflow-y-hidden bg-dark duration-300 ease-linear -translate-x-full dark:bg-neutral-900 lg:relative lg:translate-x-0"
     @click.outside="sidebarToggle = false">
     {{-- SIDEBAR HEADER --}}
     <div :class="sidebarToggle ? 'justify-between' : 'justify-center'"
@@ -69,6 +69,16 @@
                                 <x-filament::dropdown.list.item wire:click="timetables" icon="s-calendar"
                                     icon-color="primary">
                                     Timetables
+                                </x-filament::dropdown.list.item>
+
+                                <x-filament::dropdown.list.item wire:click="exams" icon="s-newspaper"
+                                    icon-color="primary">
+                                    Exams
+                                </x-filament::dropdown.list.item>
+
+                                <x-filament::dropdown.list.item wire:click="schedules" icon="s-queue-list"
+                                    icon-color="primary">
+                                    Exam Schedules
                                 </x-filament::dropdown.list.item>
                             </x-filament::dropdown.list>
                         </x-filament::dropdown>

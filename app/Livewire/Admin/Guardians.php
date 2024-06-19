@@ -42,6 +42,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Title;
@@ -585,17 +586,17 @@ class Guardians extends Component implements HasForms, HasTable
             ->form(function (User $record) {
                 return $record->students->map(function (Student $student) {
                     return Section::make(new HtmlString(
-                        '<p class="uppercase font-bold">'.$student->user->first_name.' '.$student->user->middle_name.' '.$student->user->last_name.'</p>'
+                        '<p class="flex items-center gap-1"><img class="h-8 w-8 rounded-full" src='.Storage::url($student->user->avatar).'>
+                        <span class="uppercase font-bold">'.$student->user->first_name.' '.$student->user->middle_name.' '.$student->user->last_name.'</span></p>'
                     ))
                         ->description('Click to toggle collapse.')
-                        ->icon('s-user')
                         ->schema([
                             TextInput::make('admission_number')
                                 ->label('Admission Number')
                                 ->placeholder($student->admission_number),
-                            TextInput::make('grade_name')
-                                ->label('Grade Name')
-                                ->placeholder($student->grade->name),
+                            TextInput::make('classroom_name')
+                                ->label('Classroom Name')
+                                ->placeholder($student->classroom->name),
                             TextInput::make('student_email')
                                 ->label('Email')
                                 ->placeholder($student->user->email),

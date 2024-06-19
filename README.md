@@ -1,4 +1,4 @@
-## About SkoolMaven
+# About SkoolMaven
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
@@ -26,8 +26,8 @@ We would like to extend our thanks to the following sponsors for funding Laravel
 
 ### Premium Partners
 
-- **[The MAHD SCIENTIST]()**
-- **[JavaTechnovation Enterprise]()**
+- **[The MAHD SCIENTIST](https://github.com/themahdscientist)**
+- **[JavaTechnovation Enterprise](https://github.com/javatechnovation)**
 
 ## Contributing
 
@@ -48,3 +48,7 @@ The SkoolMaven CSaaS is proprietary software licensed under the [Placeholder](pl
 ## Excluded Features
 
 - Parent-side viewing student's timetable.
+
+## Requirements
+
+- School Basic Settings (IMPORTANT)

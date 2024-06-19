@@ -3,11 +3,13 @@
 use App\Livewire\Admin\Academics;
 use App\Livewire\Admin\Academics\Classrooms;
 use App\Livewire\Admin\Academics\Grades;
+use App\Livewire\Admin\Academics\Schedules;
 use App\Livewire\Admin\Academics\Sections;
 use App\Livewire\Admin\Academics\Subjects;
 use App\Livewire\Admin\Academics\Timetables;
 use App\Livewire\Admin\Admissions;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
+use App\Livewire\Admin\Exams;
 use App\Livewire\Admin\Finances;
 use App\Livewire\Admin\Guardians;
 use App\Livewire\Admin\Profile;
@@ -87,6 +89,8 @@ Route::name('app')->group(function () {
                 Route::get('classrooms', Classrooms::class)->name('.classrooms');
                 Route::get('subjects', Subjects::class)->name('.subjects');
                 Route::get('timetables', Timetables::class)->name('.timetables');
+                Route::get('exams', Exams::class)->name('.exams');
+                Route::get('schedules', Schedules::class)->name('.schedules');
             });
             Route::prefix('admissions')->name('.admissions')->group(function () {
                 Route::get('', Admissions::class);
